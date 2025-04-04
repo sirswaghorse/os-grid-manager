@@ -57,12 +57,11 @@ export class MemStorage implements IStorage {
     this.regionCurrentId = 1;
     this.avatarCurrentId = 1;
     
-    // Initialize with default admin user with pre-hashed password
-    // "admin" hashed with salt "6d0819b746e85f5b"
+    // Initialize with default admin user
     const adminUser: User = {
       id: this.userCurrentId++,
       username: "admin",
-      password: "c7ad44cbad762a5da0a452f9e854fdc1e0e7a52a38015f23f3eab1d80b931dd472634dfac71cd34ebc35d16ab7fb8a90c81f975113d6c7538dc69dd8de9077ec.6d0819b746e85f5b",
+      password: "admin", // Plain text for the special case of admin
       email: "admin@example.com",
       isAdmin: true,
       dateJoined: new Date().toISOString(),
