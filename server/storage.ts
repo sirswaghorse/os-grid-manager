@@ -127,7 +127,9 @@ export class MemStorage implements IStorage {
     const testUser: User = {
       id: this.userCurrentId++,
       username: "testuser",
-      password: "password123", // Plain text for testing
+      // We're using SHA-256 hashing in auth.ts, so hash the password the same way for consistency
+      // This is the hash of "password123"
+      password: "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f",
       email: "user@example.com",
       isAdmin: false,
       dateJoined: new Date().toISOString(),
