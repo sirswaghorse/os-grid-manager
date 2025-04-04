@@ -56,12 +56,10 @@ export const users = pgTable("users", {
 export const insertGridSchema = createInsertSchema(grids).omit({
   id: true,
   lastStarted: true,
-  isRunning: true,
 });
 
 export const insertRegionSchema = createInsertSchema(regions).omit({
   id: true,
-  isRunning: true,
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({

@@ -57,16 +57,22 @@ export class MemStorage implements IStorage {
     this.regionCurrentId = 1;
     this.avatarCurrentId = 1;
     
-    // Initialize with default admin user
-    this.createUser({
+    // Initialize with default admin user with pre-hashed password
+    // "admin" hashed with salt "6d0819b746e85f5b"
+    const adminUser: User = {
+      id: this.userCurrentId++,
       username: "admin",
-      password: "admin",
+      password: "c7ad44cbad762a5da0a452f9e854fdc1e0e7a52a38015f23f3eab1d80b931dd472634dfac71cd34ebc35d16ab7fb8a90c81f975113d6c7538dc69dd8de9077ec.6d0819b746e85f5b",
       email: "admin@example.com",
-      isAdmin: true
-    });
+      isAdmin: true,
+      dateJoined: new Date().toISOString(),
+      firstName: null,
+      lastName: null
+    };
+    this.users.set(adminUser.id, adminUser);
     
     // Initialize with a sample grid
-    const sampleGrid = this.createGrid({
+    const sampleGridData = {
       name: "Sample Grid",
       nickname: "SAMPLE",
       adminEmail: "admin@example.com",
@@ -75,10 +81,17 @@ export class MemStorage implements IStorage {
       port: 8000,
       externalPort: 8002,
       isRunning: true
-    });
+    };
+    const sampleGrid = {
+      id: this.gridCurrentId++,
+      ...sampleGridData,
+      lastStarted: new Date().toISOString()
+    };
+    this.grids.set(sampleGrid.id, sampleGrid);
     
-    // Initialize with sample regions
-    this.createRegion({
+    // Initialize with sample regions directly
+    const welcomeIsland: Region = {
+      id: this.regionCurrentId++,
       gridId: sampleGrid.id,
       name: "Welcome Island",
       positionX: 1000,
@@ -89,9 +102,11 @@ export class MemStorage implements IStorage {
       template: "welcome",
       status: "online",
       isRunning: true
-    });
+    };
+    this.regions.set(welcomeIsland.id, welcomeIsland);
     
-    this.createRegion({
+    const marketPlaza: Region = {
+      id: this.regionCurrentId++,
       gridId: sampleGrid.id,
       name: "Market Plaza",
       positionX: 1000,
@@ -102,9 +117,11 @@ export class MemStorage implements IStorage {
       template: "sandbox",
       status: "online",
       isRunning: true
-    });
+    };
+    this.regions.set(marketPlaza.id, marketPlaza);
     
-    this.createRegion({
+    const eventsCenter: Region = {
+      id: this.regionCurrentId++,
       gridId: sampleGrid.id,
       name: "Events Center",
       positionX: 1512,
@@ -115,9 +132,11 @@ export class MemStorage implements IStorage {
       template: "empty",
       status: "online",
       isRunning: true
-    });
+    };
+    this.regions.set(eventsCenter.id, eventsCenter);
     
-    this.createRegion({
+    const sandbox: Region = {
+      id: this.regionCurrentId++,
       gridId: sampleGrid.id,
       name: "Sandbox",
       positionX: 1512,
@@ -128,7 +147,8 @@ export class MemStorage implements IStorage {
       template: "sandbox",
       status: "restarting",
       isRunning: false
-    });
+    };
+    this.regions.set(sandbox.id, sandbox);
   }
 
   // User operations
@@ -198,7 +218,16 @@ export class MemStorage implements IStorage {
   async createGrid(insertGrid: InsertGrid): Promise<Grid> {
     const id = this.gridCurrentId++;
     const now = new Date().toISOString();
-    const grid: Grid = { ...insertGrid, id, lastStarted: now };
+    // Ensure all required fields have values
+    const grid: Grid = { 
+      ...insertGrid, 
+      id, 
+      lastStarted: now,
+      status: insertGrid.status || "offline",
+      port: insertGrid.port || 8000,
+      externalPort: insertGrid.externalPort || 8002,
+      isRunning: insertGrid.isRunning || false
+    };
     this.grids.set(id, grid);
     return grid;
   }
@@ -233,7 +262,16 @@ export class MemStorage implements IStorage {
   
   async createRegion(insertRegion: InsertRegion): Promise<Region> {
     const id = this.regionCurrentId++;
-    const region: Region = { ...insertRegion, id };
+    // Ensure all required fields have values
+    const region: Region = { 
+      ...insertRegion, 
+      id,
+      status: insertRegion.status || "offline",
+      sizeX: insertRegion.sizeX || 256,
+      sizeY: insertRegion.sizeY || 256,
+      template: insertRegion.template || "empty",
+      isRunning: insertRegion.isRunning || false
+    };
     this.regions.set(id, region);
     return region;
   }
