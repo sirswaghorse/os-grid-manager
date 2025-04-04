@@ -123,6 +123,29 @@ export class MemStorage implements IStorage {
     };
     this.users.set(adminUser.id, adminUser);
     
+    // Create a regular test user account
+    const testUser: User = {
+      id: this.userCurrentId++,
+      username: "testuser",
+      password: "password123", // Plain text for testing
+      email: "user@example.com",
+      isAdmin: false,
+      dateJoined: new Date().toISOString(),
+      firstName: "Test",
+      lastName: "User"
+    };
+    this.users.set(testUser.id, testUser);
+    
+    // Create an avatar for the test user
+    const testAvatar: Avatar = {
+      id: this.avatarCurrentId++,
+      userId: testUser.id,
+      avatarType: "male",
+      name: "TestAvatar",
+      created: new Date().toISOString()
+    };
+    this.avatars.set(testAvatar.id, testAvatar);
+    
     // Initialize with a sample grid
     const sampleGridData = {
       name: "Sample Grid",
