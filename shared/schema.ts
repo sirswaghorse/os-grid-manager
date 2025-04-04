@@ -31,6 +31,15 @@ export const regions = pgTable("regions", {
   isRunning: boolean("is_running").notNull().default(false),
 });
 
+// Avatar model
+export const avatars = pgTable("avatars", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  avatarType: text("avatar_type").notNull(),
+  name: text("name").notNull(),
+  created: text("created").notNull().default(new Date().toISOString()),
+});
+
 // User model (for grid admin users)
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -38,6 +47,9 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   email: text("email").notNull(),
   isAdmin: boolean("is_admin").notNull().default(false),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  dateJoined: text("date_joined").notNull().default(new Date().toISOString()),
 });
 
 // Create Zod schemas for data validation
@@ -54,6 +66,22 @@ export const insertRegionSchema = createInsertSchema(regions).omit({
 
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
+  dateJoined: true,
+});
+
+export const insertAvatarSchema = createInsertSchema(avatars).omit({
+  id: true,
+  created: true,
+});
+
+// User registration schema with avatar selection
+export const userRegistrationSchema = insertUserSchema.extend({
+  confirmPassword: z.string(),
+  avatarType: z.string(),
+  avatarName: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
 });
 
 // TypeScript types for type safety
@@ -65,3 +93,8 @@ export type Region = typeof regions.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+export type InsertAvatar = z.infer<typeof insertAvatarSchema>;
+export type Avatar = typeof avatars.$inferSelect;
+
+export type UserRegistration = z.infer<typeof userRegistrationSchema>;

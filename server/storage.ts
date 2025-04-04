@@ -1,15 +1,23 @@
 import { 
-  users, regions, grids, 
+  users, regions, grids, avatars,
   type User, type InsertUser, 
   type Grid, type InsertGrid,
-  type Region, type InsertRegion 
+  type Region, type InsertRegion,
+  type Avatar, type InsertAvatar
 } from "@shared/schema";
 
 export interface IStorage {
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
   createUser(user: InsertUser): Promise<User>;
+  
+  // Avatar operations
+  createAvatar(avatar: InsertAvatar): Promise<Avatar>;
+  getAvatarsByUser(userId: number): Promise<Avatar[]>;
+  getAvatar(id: number): Promise<Avatar | undefined>;
   
   // Grid operations
   getGrid(id: number): Promise<Grid | undefined>;
@@ -31,19 +39,23 @@ export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private grids: Map<number, Grid>;
   private regions: Map<number, Region>;
+  private avatars: Map<number, Avatar>;
   
   private userCurrentId: number;
   private gridCurrentId: number;
   private regionCurrentId: number;
+  private avatarCurrentId: number;
 
   constructor() {
     this.users = new Map();
     this.grids = new Map();
     this.regions = new Map();
+    this.avatars = new Map();
     
     this.userCurrentId = 1;
     this.gridCurrentId = 1;
     this.regionCurrentId = 1;
+    this.avatarCurrentId = 1;
     
     // Initialize with default admin user
     this.createUser({
@@ -129,12 +141,49 @@ export class MemStorage implements IStorage {
       (user) => user.username === username,
     );
   }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.email === email,
+    );
+  }
+  
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userCurrentId++;
-    const user: User = { ...insertUser, id };
+    const dateJoined = new Date().toISOString();
+    const user: User = { 
+      ...insertUser, 
+      id, 
+      dateJoined,
+      firstName: insertUser.firstName || null,
+      lastName: insertUser.lastName || null,
+      isAdmin: insertUser.isAdmin || false
+    };
     this.users.set(id, user);
     return user;
+  }
+  
+  // Avatar operations
+  async createAvatar(insertAvatar: InsertAvatar): Promise<Avatar> {
+    const id = this.avatarCurrentId++;
+    const created = new Date().toISOString();
+    const avatar: Avatar = { ...insertAvatar, id, created };
+    this.avatars.set(id, avatar);
+    return avatar;
+  }
+  
+  async getAvatarsByUser(userId: number): Promise<Avatar[]> {
+    return Array.from(this.avatars.values()).filter(
+      (avatar) => avatar.userId === userId
+    );
+  }
+  
+  async getAvatar(id: number): Promise<Avatar | undefined> {
+    return this.avatars.get(id);
   }
   
   // Grid operations

@@ -1,10 +1,20 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertGridSchema, insertRegionSchema, insertUserSchema } from "@shared/schema";
+import { 
+  insertGridSchema, 
+  insertRegionSchema, 
+  insertUserSchema, 
+  insertAvatarSchema,
+  userRegistrationSchema 
+} from "@shared/schema";
 import { ZodError } from "zod";
+import { setupAuth } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up authentication routes
+  setupAuth(app);
+  
   // Error handler helper
   const handleError = (res: Response, error: any) => {
     console.error("API Error:", error);
@@ -138,9 +148,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User Routes
   app.get("/api/users", async (req: Request, res: Response) => {
     try {
-      const users = Array.from(storage.users?.values() || []);
+      const users = await storage.getAllUsers();
+      
       // Strip password field for security
       const safeUsers = users.map(({ password, ...user }) => user);
+      
       res.json(safeUsers);
     } catch (error) {
       handleError(res, error);
@@ -153,6 +165,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newUser = await storage.createUser(userData);
       const { password, ...safeUser } = newUser;
       res.status(201).json(safeUser);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+  
+  // User endpoint to create avatar for existing user
+  app.post("/api/users/:id/avatars", async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const avatarData = insertAvatarSchema.parse({ ...req.body, userId });
+      const avatar = await storage.createAvatar(avatarData);
+      res.status(201).json(avatar);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+  
+  // Get avatars for a user
+  app.get("/api/users/:id/avatars", async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const avatars = await storage.getAvatarsByUser(userId);
+      res.json(avatars);
     } catch (error) {
       handleError(res, error);
     }
