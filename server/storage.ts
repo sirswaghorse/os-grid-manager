@@ -1,10 +1,12 @@
 import { 
-  users, regions, grids, avatars, settings,
+  users, regions, grids, avatars, regionSizes, regionPurchases,
   type User, type InsertUser, 
   type Grid, type InsertGrid,
   type Region, type InsertRegion,
   type Avatar, type InsertAvatar,
   type Setting, type InsertSetting,
+  type RegionSize, type InsertRegionSize,
+  type RegionPurchase, type InsertRegionPurchase,
   type LoginCustomization
 } from "@shared/schema";
 
@@ -36,6 +38,20 @@ export interface IStorage {
   updateRegion(id: number, region: Partial<Region>): Promise<Region | undefined>;
   deleteRegion(id: number): Promise<boolean>;
   
+  // Region size operations (admin configurable region templates)
+  getRegionSize(id: number): Promise<RegionSize | undefined>;
+  getAllRegionSizes(): Promise<RegionSize[]>;
+  createRegionSize(sizeTemplate: InsertRegionSize): Promise<RegionSize>;
+  updateRegionSize(id: number, sizeTemplate: Partial<RegionSize>): Promise<RegionSize | undefined>;
+  deleteRegionSize(id: number): Promise<boolean>;
+  
+  // Region purchase operations
+  getRegionPurchase(id: number): Promise<RegionPurchase | undefined>;
+  getRegionPurchasesByUser(userId: number): Promise<RegionPurchase[]>;
+  getPendingRegionPurchases(): Promise<RegionPurchase[]>;
+  createRegionPurchase(purchase: InsertRegionPurchase): Promise<RegionPurchase>;
+  updateRegionPurchase(id: number, purchase: Partial<RegionPurchase>): Promise<RegionPurchase | undefined>;
+  
   // Settings operations
   getSetting(key: string): Promise<Setting | undefined>;
   getAllSettings(): Promise<Setting[]>;
@@ -54,12 +70,16 @@ export class MemStorage implements IStorage {
   private regions: Map<number, Region>;
   private avatars: Map<number, Avatar>;
   private settings: Map<string, Setting>;
+  private regionSizes: Map<number, RegionSize>;
+  private regionPurchases: Map<number, RegionPurchase>;
   
   private userCurrentId: number;
   private gridCurrentId: number;
   private regionCurrentId: number;
   private avatarCurrentId: number;
   private settingCurrentId: number;
+  private regionSizeCurrentId: number;
+  private regionPurchaseCurrentId: number;
 
   constructor() {
     this.users = new Map();
@@ -67,12 +87,16 @@ export class MemStorage implements IStorage {
     this.regions = new Map();
     this.avatars = new Map();
     this.settings = new Map();
+    this.regionSizes = new Map();
+    this.regionPurchases = new Map();
     
     this.userCurrentId = 1;
     this.gridCurrentId = 1;
     this.regionCurrentId = 1;
     this.avatarCurrentId = 1;
     this.settingCurrentId = 1;
+    this.regionSizeCurrentId = 1;
+    this.regionPurchaseCurrentId = 1;
     
     // Default login customization
     const loginCustomization = {
@@ -129,7 +153,9 @@ export class MemStorage implements IStorage {
       port: 9000,
       template: "welcome",
       status: "online",
-      isRunning: true
+      isRunning: true,
+      ownerId: null,
+      isPendingSetup: null
     };
     this.regions.set(welcomeIsland.id, welcomeIsland);
     
@@ -144,7 +170,9 @@ export class MemStorage implements IStorage {
       port: 9001,
       template: "sandbox",
       status: "online",
-      isRunning: true
+      isRunning: true,
+      ownerId: null,
+      isPendingSetup: null
     };
     this.regions.set(marketPlaza.id, marketPlaza);
     
@@ -159,7 +187,9 @@ export class MemStorage implements IStorage {
       port: 9002,
       template: "empty",
       status: "online",
-      isRunning: true
+      isRunning: true,
+      ownerId: null,
+      isPendingSetup: null
     };
     this.regions.set(eventsCenter.id, eventsCenter);
     
@@ -174,9 +204,45 @@ export class MemStorage implements IStorage {
       port: 9003,
       template: "sandbox",
       status: "restarting",
-      isRunning: false
+      isRunning: false,
+      ownerId: null,
+      isPendingSetup: null
     };
     this.regions.set(sandbox.id, sandbox);
+    
+    // Initialize sample region size templates
+    const smallRegion: RegionSize = {
+      id: this.regionSizeCurrentId++,
+      name: "Small",
+      description: "256 x 256 region - perfect for a small homestead",
+      sizeX: 256,
+      sizeY: 256,
+      price: "10.00",
+      isEnabled: true
+    };
+    this.regionSizes.set(smallRegion.id, smallRegion);
+    
+    const mediumRegion: RegionSize = {
+      id: this.regionSizeCurrentId++,
+      name: "Medium",
+      description: "512 x 512 region - great for larger builds",
+      sizeX: 512,
+      sizeY: 512,
+      price: "25.00",
+      isEnabled: true
+    };
+    this.regionSizes.set(mediumRegion.id, mediumRegion);
+    
+    const largeRegion: RegionSize = {
+      id: this.regionSizeCurrentId++,
+      name: "Large",
+      description: "1024 x 1024 region - ideal for estates and big projects",
+      sizeX: 1024,
+      sizeY: 1024,
+      price: "45.00",
+      isEnabled: true
+    };
+    this.regionSizes.set(largeRegion.id, largeRegion);
   }
 
   // User operations
@@ -298,7 +364,9 @@ export class MemStorage implements IStorage {
       sizeX: insertRegion.sizeX || 256,
       sizeY: insertRegion.sizeY || 256,
       template: insertRegion.template || "empty",
-      isRunning: insertRegion.isRunning || false
+      isRunning: insertRegion.isRunning || false,
+      ownerId: insertRegion.ownerId || null,
+      isPendingSetup: insertRegion.isPendingSetup || null
     };
     this.regions.set(id, region);
     return region;
@@ -388,6 +456,83 @@ export class MemStorage implements IStorage {
     }
     
     return customization;
+  }
+  
+  // Region size operations
+  async getRegionSize(id: number): Promise<RegionSize | undefined> {
+    return this.regionSizes.get(id);
+  }
+  
+  async getAllRegionSizes(): Promise<RegionSize[]> {
+    return Array.from(this.regionSizes.values());
+  }
+  
+  async createRegionSize(insertSizeTemplate: InsertRegionSize): Promise<RegionSize> {
+    const id = this.regionSizeCurrentId++;
+    const sizeTemplate: RegionSize = {
+      ...insertSizeTemplate,
+      id,
+      isEnabled: insertSizeTemplate.isEnabled ?? true
+    };
+    this.regionSizes.set(id, sizeTemplate);
+    return sizeTemplate;
+  }
+  
+  async updateRegionSize(id: number, updates: Partial<RegionSize>): Promise<RegionSize | undefined> {
+    const sizeTemplate = this.regionSizes.get(id);
+    if (!sizeTemplate) return undefined;
+    
+    const updatedTemplate = { ...sizeTemplate, ...updates };
+    this.regionSizes.set(id, updatedTemplate);
+    return updatedTemplate;
+  }
+  
+  async deleteRegionSize(id: number): Promise<boolean> {
+    return this.regionSizes.delete(id);
+  }
+  
+  // Region purchase operations
+  async getRegionPurchase(id: number): Promise<RegionPurchase | undefined> {
+    return this.regionPurchases.get(id);
+  }
+  
+  async getRegionPurchasesByUser(userId: number): Promise<RegionPurchase[]> {
+    return Array.from(this.regionPurchases.values()).filter(
+      (purchase) => purchase.userId === userId
+    );
+  }
+  
+  async getPendingRegionPurchases(): Promise<RegionPurchase[]> {
+    return Array.from(this.regionPurchases.values()).filter(
+      (purchase) => purchase.status === "pending"
+    );
+  }
+  
+  async createRegionPurchase(insertPurchase: InsertRegionPurchase): Promise<RegionPurchase> {
+    const id = this.regionPurchaseCurrentId++;
+    const purchaseDate = new Date().toISOString();
+    
+    const purchase: RegionPurchase = {
+      ...insertPurchase,
+      id,
+      purchaseDate,
+      status: insertPurchase.status || "pending",
+      paymentMethod: insertPurchase.paymentMethod || "paypal",
+      regionId: insertPurchase.regionId ?? null,
+      paymentId: insertPurchase.paymentId ?? null
+    };
+    
+    this.regionPurchases.set(id, purchase);
+    return purchase;
+  }
+  
+  async updateRegionPurchase(id: number, updates: Partial<RegionPurchase>): Promise<RegionPurchase | undefined> {
+    const purchase = this.regionPurchases.get(id);
+    if (!purchase) return undefined;
+    
+    const updatedPurchase = { ...purchase, ...updates };
+    this.regionPurchases.set(id, updatedPurchase);
+    return updatedPurchase;
   }
 }
 

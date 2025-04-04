@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -29,6 +29,33 @@ export const regions = pgTable("regions", {
   template: text("template").notNull().default("empty"),
   status: text("status").notNull().default("offline"),
   isRunning: boolean("is_running").notNull().default(false),
+  ownerId: integer("owner_id"), // User ID who owns this region (null for grid-owned regions)
+  isPendingSetup: boolean("is_pending_setup").default(false), // Flag for regions that need admin setup
+});
+
+// Region size template model (admin-configurable region sizes and prices)
+export const regionSizes = pgTable("region_sizes", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // e.g., "Small", "Medium", "Large"
+  description: text("description").notNull(),
+  sizeX: integer("size_x").notNull(),
+  sizeY: integer("size_y").notNull(),
+  price: numeric("price").notNull(), // Price in USD
+  isEnabled: boolean("is_enabled").notNull().default(true),
+});
+
+// Region purchase model
+export const regionPurchases = pgTable("region_purchases", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(), // User who purchased
+  regionSizeId: integer("region_size_id").notNull(), // Size template used
+  regionId: integer("region_id"), // Linked region (null until admin creates region)
+  purchaseDate: text("purchase_date").notNull().default(new Date().toISOString()),
+  paymentMethod: text("payment_method").notNull().default("paypal"),
+  paymentId: text("payment_id"), // Payment reference ID
+  amount: numeric("amount").notNull(), // Amount paid
+  status: text("status").notNull().default("pending"), // pending, completed, refunded
+  regionName: text("region_name").notNull(), // Requested region name
 });
 
 // Avatar model
@@ -52,14 +79,6 @@ export const users = pgTable("users", {
   dateJoined: text("date_joined").notNull().default(new Date().toISOString()),
 });
 
-// Settings model (for application settings)
-export const settings = pgTable("settings", {
-  id: serial("id").primaryKey(),
-  key: text("key").notNull().unique(),
-  value: text("value").notNull(),
-  lastUpdated: text("last_updated").notNull().default(new Date().toISOString()),
-});
-
 // Create Zod schemas for data validation
 export const insertGridSchema = createInsertSchema(grids).omit({
   id: true,
@@ -80,9 +99,19 @@ export const insertAvatarSchema = createInsertSchema(avatars).omit({
   created: true,
 });
 
-export const insertSettingSchema = createInsertSchema(settings).omit({
+// Define a direct schema for settings insertion without using createInsertSchema
+export const insertSettingSchema = z.object({
+  key: z.string(),
+  value: z.string(),
+});
+
+export const insertRegionSizeSchema = createInsertSchema(regionSizes).omit({
   id: true,
-  lastUpdated: true,
+});
+
+export const insertRegionPurchaseSchema = createInsertSchema(regionPurchases).omit({
+  id: true,
+  purchaseDate: true,
 });
 
 // User registration schema with avatar selection
@@ -116,7 +145,18 @@ export type InsertAvatar = z.infer<typeof insertAvatarSchema>;
 export type Avatar = typeof avatars.$inferSelect;
 
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
-export type Setting = typeof settings.$inferSelect;
+export type Setting = {
+  id: number;
+  key: string;
+  value: string;
+  lastUpdated: string;
+};
+
+export type InsertRegionSize = z.infer<typeof insertRegionSizeSchema>;
+export type RegionSize = typeof regionSizes.$inferSelect;
+
+export type InsertRegionPurchase = z.infer<typeof insertRegionPurchaseSchema>;
+export type RegionPurchase = typeof regionPurchases.$inferSelect;
 
 export type UserRegistration = z.infer<typeof userRegistrationSchema>;
 
