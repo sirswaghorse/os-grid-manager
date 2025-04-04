@@ -1,9 +1,11 @@
 import { 
-  users, regions, grids, avatars,
+  users, regions, grids, avatars, settings,
   type User, type InsertUser, 
   type Grid, type InsertGrid,
   type Region, type InsertRegion,
-  type Avatar, type InsertAvatar
+  type Avatar, type InsertAvatar,
+  type Setting, type InsertSetting,
+  type LoginCustomization
 } from "@shared/schema";
 
 export interface IStorage {
@@ -33,6 +35,17 @@ export interface IStorage {
   createRegion(region: InsertRegion): Promise<Region>;
   updateRegion(id: number, region: Partial<Region>): Promise<Region | undefined>;
   deleteRegion(id: number): Promise<boolean>;
+  
+  // Settings operations
+  getSetting(key: string): Promise<Setting | undefined>;
+  getAllSettings(): Promise<Setting[]>;
+  createSetting(setting: InsertSetting): Promise<Setting>;
+  updateSetting(key: string, value: string): Promise<Setting | undefined>;
+  deleteSetting(key: string): Promise<boolean>;
+  
+  // Login customization operations
+  getLoginCustomization(): Promise<LoginCustomization>;
+  updateLoginCustomization(customization: LoginCustomization): Promise<LoginCustomization>;
 }
 
 export class MemStorage implements IStorage {
@@ -40,22 +53,38 @@ export class MemStorage implements IStorage {
   private grids: Map<number, Grid>;
   private regions: Map<number, Region>;
   private avatars: Map<number, Avatar>;
+  private settings: Map<string, Setting>;
   
   private userCurrentId: number;
   private gridCurrentId: number;
   private regionCurrentId: number;
   private avatarCurrentId: number;
+  private settingCurrentId: number;
 
   constructor() {
     this.users = new Map();
     this.grids = new Map();
     this.regions = new Map();
     this.avatars = new Map();
+    this.settings = new Map();
     
     this.userCurrentId = 1;
     this.gridCurrentId = 1;
     this.regionCurrentId = 1;
     this.avatarCurrentId = 1;
+    this.settingCurrentId = 1;
+    
+    // Default login customization
+    const loginCustomization = {
+      id: this.settingCurrentId++,
+      key: "loginCustomization",
+      value: JSON.stringify({
+        displayType: "text",
+        textValue: "OpenSimulator Grid Manager"
+      }),
+      lastUpdated: new Date().toISOString()
+    };
+    this.settings.set(loginCustomization.key, loginCustomization);
     
     // Initialize with default admin user
     const adminUser: User = {
@@ -286,6 +315,79 @@ export class MemStorage implements IStorage {
   
   async deleteRegion(id: number): Promise<boolean> {
     return this.regions.delete(id);
+  }
+  
+  // Settings operations
+  async getSetting(key: string): Promise<Setting | undefined> {
+    return this.settings.get(key);
+  }
+  
+  async getAllSettings(): Promise<Setting[]> {
+    return Array.from(this.settings.values());
+  }
+  
+  async createSetting(insertSetting: InsertSetting): Promise<Setting> {
+    const id = this.settingCurrentId++;
+    const lastUpdated = new Date().toISOString();
+    const setting: Setting = { ...insertSetting, id, lastUpdated };
+    this.settings.set(setting.key, setting);
+    return setting;
+  }
+  
+  async updateSetting(key: string, value: string): Promise<Setting | undefined> {
+    const setting = this.settings.get(key);
+    if (!setting) return undefined;
+    
+    const lastUpdated = new Date().toISOString();
+    const updatedSetting = { ...setting, value, lastUpdated };
+    this.settings.set(key, updatedSetting);
+    return updatedSetting;
+  }
+  
+  async deleteSetting(key: string): Promise<boolean> {
+    return this.settings.delete(key);
+  }
+  
+  // Login customization operations
+  async getLoginCustomization(): Promise<LoginCustomization> {
+    const setting = await this.getSetting("loginCustomization");
+    if (!setting) {
+      // Default if not found
+      const defaultCustomization: LoginCustomization = {
+        displayType: "text",
+        textValue: "OpenSimulator Grid Manager"
+      };
+      return defaultCustomization;
+    }
+    
+    try {
+      return JSON.parse(setting.value);
+    } catch (error) {
+      // Handle parsing error by returning default
+      const defaultCustomization: LoginCustomization = {
+        displayType: "text",
+        textValue: "OpenSimulator Grid Manager"
+      };
+      return defaultCustomization;
+    }
+  }
+  
+  async updateLoginCustomization(customization: LoginCustomization): Promise<LoginCustomization> {
+    const settingValue = JSON.stringify(customization);
+    const existing = await this.getSetting("loginCustomization");
+    
+    if (!existing) {
+      // Create new setting if it doesn't exist
+      await this.createSetting({
+        key: "loginCustomization",
+        value: settingValue
+      });
+    } else {
+      // Update existing setting
+      await this.updateSetting("loginCustomization", settingValue);
+    }
+    
+    return customization;
   }
 }
 

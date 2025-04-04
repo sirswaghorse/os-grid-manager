@@ -52,6 +52,14 @@ export const users = pgTable("users", {
   dateJoined: text("date_joined").notNull().default(new Date().toISOString()),
 });
 
+// Settings model (for application settings)
+export const settings = pgTable("settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+  lastUpdated: text("last_updated").notNull().default(new Date().toISOString()),
+});
+
 // Create Zod schemas for data validation
 export const insertGridSchema = createInsertSchema(grids).omit({
   id: true,
@@ -72,6 +80,11 @@ export const insertAvatarSchema = createInsertSchema(avatars).omit({
   created: true,
 });
 
+export const insertSettingSchema = createInsertSchema(settings).omit({
+  id: true,
+  lastUpdated: true,
+});
+
 // User registration schema with avatar selection
 export const userRegistrationSchema = insertUserSchema.extend({
   confirmPassword: z.string(),
@@ -80,6 +93,13 @@ export const userRegistrationSchema = insertUserSchema.extend({
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
+});
+
+// Login page customization schema
+export const loginCustomizationSchema = z.object({
+  displayType: z.enum(["text", "image"]),
+  textValue: z.string().optional(),
+  imageUrl: z.string().optional(),
 });
 
 // TypeScript types for type safety
@@ -95,4 +115,9 @@ export type User = typeof users.$inferSelect;
 export type InsertAvatar = z.infer<typeof insertAvatarSchema>;
 export type Avatar = typeof avatars.$inferSelect;
 
+export type InsertSetting = z.infer<typeof insertSettingSchema>;
+export type Setting = typeof settings.$inferSelect;
+
 export type UserRegistration = z.infer<typeof userRegistrationSchema>;
+
+export type LoginCustomization = z.infer<typeof loginCustomizationSchema>;

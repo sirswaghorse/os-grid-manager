@@ -25,6 +25,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useLoginCustomization } from "@/hooks/use-login-customization";
+import { Loader2 } from "lucide-react";
 
 // Login form validation schema
 const loginSchema = z.object({
@@ -37,6 +39,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export default function LoginPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { customization, isLoading: isLoadingCustomization } = useLoginCustomization();
   
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -148,7 +151,28 @@ export default function LoginPage() {
       {/* Hero Section */}
       <div className="flex-1 bg-gradient-to-br from-primary/80 to-primary p-8 flex items-center justify-center text-white hidden md:flex">
         <div className="max-w-lg">
-          <h1 className="text-4xl font-bold mb-4">OpenSimulator Grid Manager</h1>
+          {isLoadingCustomization ? (
+            <div className="flex justify-center items-center h-24">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          ) : customization?.displayType === "image" && customization.imageUrl ? (
+            <div className="flex justify-center mb-6">
+              <img 
+                src={customization.imageUrl} 
+                alt="Grid Logo" 
+                className="max-h-32 mb-4"
+                onError={(e) => {
+                  e.currentTarget.src = "";
+                  e.currentTarget.alt = "Logo not found";
+                }}
+              />
+            </div>
+          ) : (
+            <h1 className="text-4xl font-bold mb-4">
+              {customization?.textValue || "OpenSimulator Grid Manager"}
+            </h1>
+          )}
+          
           <p className="text-xl mb-6">
             A simple, intuitive dashboard for managing your virtual world.
           </p>

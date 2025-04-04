@@ -6,7 +6,9 @@ import {
   insertRegionSchema, 
   insertUserSchema, 
   insertAvatarSchema,
-  userRegistrationSchema 
+  insertSettingSchema,
+  userRegistrationSchema,
+  loginCustomizationSchema 
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { setupAuth } from "./auth";
@@ -263,6 +265,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }, 3000);
       
       res.json({ message: "Region restart initiated" });
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+
+  // Settings Routes
+  app.get("/api/settings", async (req: Request, res: Response) => {
+    try {
+      const settings = await storage.getAllSettings();
+      res.json(settings);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+
+  app.get("/api/settings/:key", async (req: Request, res: Response) => {
+    try {
+      const key = req.params.key;
+      const setting = await storage.getSetting(key);
+      if (!setting) {
+        return res.status(404).json({ message: "Setting not found" });
+      }
+      res.json(setting);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+
+  app.post("/api/settings", async (req: Request, res: Response) => {
+    try {
+      const settingData = insertSettingSchema.parse(req.body);
+      const newSetting = await storage.createSetting(settingData);
+      res.status(201).json(newSetting);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+
+  app.put("/api/settings/:key", async (req: Request, res: Response) => {
+    try {
+      const key = req.params.key;
+      const { value } = req.body;
+      
+      if (!value) {
+        return res.status(400).json({ message: "Value is required" });
+      }
+      
+      const updatedSetting = await storage.updateSetting(key, value);
+      if (!updatedSetting) {
+        return res.status(404).json({ message: "Setting not found" });
+      }
+      res.json(updatedSetting);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+
+  app.delete("/api/settings/:key", async (req: Request, res: Response) => {
+    try {
+      const key = req.params.key;
+      const deleted = await storage.deleteSetting(key);
+      if (!deleted) {
+        return res.status(404).json({ message: "Setting not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+
+  // Login Customization Endpoint
+  app.get("/api/login-customization", async (req: Request, res: Response) => {
+    try {
+      const customization = await storage.getLoginCustomization();
+      res.json(customization);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+
+  app.put("/api/login-customization", async (req: Request, res: Response) => {
+    try {
+      // Add authentication check to restrict updates to admin users only
+      if (!req.isAuthenticated() || !req.user?.isAdmin) {
+        return res.status(403).json({ error: "Unauthorized: Admin access required" });
+      }
+      
+      const customizationData = loginCustomizationSchema.parse(req.body);
+      const updatedCustomization = await storage.updateLoginCustomization(customizationData);
+      res.json(updatedCustomization);
     } catch (error) {
       handleError(res, error);
     }
