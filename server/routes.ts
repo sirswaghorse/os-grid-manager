@@ -89,9 +89,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/regions", async (req: Request, res: Response) => {
     try {
       const gridId = req.query.gridId ? parseInt(req.query.gridId as string) : undefined;
-      const regions = gridId 
-        ? await storage.getRegionsByGrid(gridId)
-        : await storage.getAllRegions();
+      const ownerId = req.query.ownerId ? parseInt(req.query.ownerId as string) : undefined;
+      
+      let regions = [];
+      
+      if (gridId) {
+        regions = await storage.getRegionsByGrid(gridId);
+      } else if (ownerId) {
+        // Get all regions and filter by owner ID
+        // Ideally, this would be a separate storage method for efficiency
+        regions = (await storage.getAllRegions()).filter(region => region.ownerId === ownerId);
+      } else {
+        regions = await storage.getAllRegions();
+      }
+      
       res.json(regions);
     } catch (error) {
       handleError(res, error);
@@ -355,6 +366,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const customizationData = loginCustomizationSchema.parse(req.body);
       const updatedCustomization = await storage.updateLoginCustomization(customizationData);
       res.json(updatedCustomization);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+
+  // Region sizes endpoints
+  app.get("/api/region-sizes", async (req: Request, res: Response) => {
+    try {
+      const regionSizes = await storage.getAllRegionSizes();
+      res.json(regionSizes);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+  
+  app.get("/api/region-sizes/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const regionSize = await storage.getRegionSize(id);
+      if (!regionSize) {
+        return res.status(404).json({ message: "Region size not found" });
+      }
+      res.json(regionSize);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+  
+  // Region purchases endpoints
+  app.get("/api/region-purchases", async (req: Request, res: Response) => {
+    try {
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      
+      if (userId) {
+        const purchases = await storage.getRegionPurchasesByUser(userId);
+        res.json(purchases);
+      } else {
+        // Only admins should see all purchases
+        if (!req.isAuthenticated() || !(req.user as any).isAdmin) {
+          return res.status(403).json({ message: "Unauthorized" });
+        }
+        
+        const purchases = await storage.getPendingRegionPurchases();
+        res.json(purchases);
+      }
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+  
+  app.post("/api/region-purchases", async (req: Request, res: Response) => {
+    try {
+      // Check if user is authenticated
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      const purchase = await storage.createRegionPurchase(req.body);
+      res.status(201).json(purchase);
     } catch (error) {
       handleError(res, error);
     }

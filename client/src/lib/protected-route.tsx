@@ -2,6 +2,11 @@ import { useAuth } from "@/hooks/use-auth";
 import { Loader2 } from "lucide-react";
 import { Redirect, Route } from "wouter";
 
+/**
+ * This component is being kept for backwards compatibility.
+ * For new routes, please use RoleBasedRoute, AdminRoute, or UserRoute 
+ * from App.tsx instead.
+ */
 export function ProtectedRoute({
   path,
   component: Component,
