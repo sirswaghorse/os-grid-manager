@@ -112,9 +112,9 @@ export default function UserLayout({ children }: UserLayoutProps) {
                 Marketplace
               </NavItem>
               <NavItem
-                href="/inventory"
+                href="/marketplace/inventory"
                 icon={<Package className="h-5 w-5" />}
-                active={location === "/inventory"}
+                active={location === "/marketplace/inventory"}
                 onClick={() => isMobile && setSidebarOpen(false)}
               >
                 My Inventory
