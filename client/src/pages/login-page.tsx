@@ -52,9 +52,6 @@ export default function LoginPage() {
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginFormValues) => {
       const res = await apiRequest("POST", "/api/login", credentials);
-      if (!res.ok) {
-        throw new Error("Invalid username or password");
-      }
       return await res.json();
     },
     onSuccess: (user) => {
@@ -63,7 +60,11 @@ export default function LoginPage() {
         title: "Login Successful",
         description: "You have been logged in successfully.",
       });
-      setLocation("/");
+      
+      // Use setTimeout to ensure toast is shown before navigation
+      setTimeout(() => {
+        setLocation("/");
+      }, 100);
     },
     onError: (error: Error) => {
       toast({

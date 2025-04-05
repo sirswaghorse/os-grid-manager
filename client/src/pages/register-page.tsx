@@ -68,7 +68,11 @@ export default function RegisterPage() {
         title: "Registration Successful",
         description: "Your account has been created. Please login.",
       });
-      setLocation("/login");
+      
+      // Use setTimeout to ensure toast is shown before navigation
+      setTimeout(() => {
+        setLocation("/login");
+      }, 100);
     },
     onError: (error: Error) => {
       toast({
