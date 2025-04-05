@@ -103,7 +103,7 @@ export default function Sidebar() {
                 icon={<MarketplaceIcon />}
                 isActive={location === '/marketplace' || location.startsWith('/marketplace/')}
               >
-                Marketplace
+                Marketplace <span className="ml-1 text-xs text-gray-500">(Beta)</span>
               </NavItem>
               
               <NavItem 

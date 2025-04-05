@@ -109,7 +109,7 @@ export default function UserLayout({ children }: UserLayoutProps) {
                 active={location === "/marketplace" || location.startsWith("/marketplace/")}
                 onClick={() => isMobile && setSidebarOpen(false)}
               >
-                Marketplace
+                Marketplace <span className="text-xs ml-1 text-gray-500 dark:text-gray-400">(Beta)</span>
               </NavItem>
               <NavItem
                 href="/marketplace/inventory"
