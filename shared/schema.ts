@@ -131,6 +131,14 @@ export const loginCustomizationSchema = z.object({
   imageUrl: z.string().optional(),
 });
 
+// Splash page customization schema
+export const splashPageSchema = z.object({
+  message: z.string().default("Welcome to our grid!"),
+  calendarUrl: z.string().optional(),
+  slideshowImages: z.array(z.string()).default([]),
+  slideshowSpeed: z.number().default(5000), // milliseconds between slides
+});
+
 // TypeScript types for type safety
 export type InsertGrid = z.infer<typeof insertGridSchema>;
 export type Grid = typeof grids.$inferSelect;
@@ -161,3 +169,5 @@ export type RegionPurchase = typeof regionPurchases.$inferSelect;
 export type UserRegistration = z.infer<typeof userRegistrationSchema>;
 
 export type LoginCustomization = z.infer<typeof loginCustomizationSchema>;
+
+export type SplashPage = z.infer<typeof splashPageSchema>;

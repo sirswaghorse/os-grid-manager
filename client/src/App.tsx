@@ -15,6 +15,8 @@ import RegisterPage from "@/pages/register-page";
 import UserDashboard from "@/pages/UserDashboard";
 import UserRegions from "@/pages/UserRegions";
 import UserAccount from "@/pages/UserAccount";
+import SplashPage from "@/pages/SplashPage";
+import SplashPageView from "@/pages/SplashPageView";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
 import { Loader2 } from "lucide-react";
@@ -147,6 +149,13 @@ const AdminSettings = () => (
   </AppLayout>
 );
 
+// Admin splash page management wrapped with layout
+const AdminSplashPage = () => (
+  <AppLayout>
+    <SplashPage />
+  </AppLayout>
+);
+
 // Admin help page wrapped with layout
 const AdminHelp = () => (
   <AppLayout>
@@ -207,6 +216,7 @@ function Router() {
       {/* Admin-only routes */}
       <AdminRoute path="/users" component={AdminUsers} />
       <AdminRoute path="/settings" component={AdminSettings} />
+      <AdminRoute path="/splash-page" component={AdminSplashPage} />
       
       {/* User-only routes */}
       <UserRoute path="/my-regions" component={UserRegionsWithLayout} />
@@ -215,6 +225,7 @@ function Router() {
       {/* Public routes without the layout */}
       <Route path="/login" component={LoginPage} />
       <Route path="/register" component={RegisterPage} />
+      <Route path="/splash" component={SplashPageView} />
       
       {/* 404 route */}
       <Route component={NotFound} />

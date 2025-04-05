@@ -8,7 +8,8 @@ import {
   insertAvatarSchema,
   insertSettingSchema,
   userRegistrationSchema,
-  loginCustomizationSchema 
+  loginCustomizationSchema,
+  splashPageSchema
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { setupAuth } from "./auth";
@@ -425,6 +426,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const purchase = await storage.createRegionPurchase(req.body);
       res.status(201).json(purchase);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+
+  // Splash page endpoints
+  app.get("/api/splash-page", async (req: Request, res: Response) => {
+    try {
+      const splashPage = await storage.getSplashPage();
+      res.json(splashPage);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+  
+  app.put("/api/splash-page", async (req: Request, res: Response) => {
+    try {
+      // Add authentication check to restrict updates to admin users only
+      if (!req.isAuthenticated() || !(req.user as any).isAdmin) {
+        return res.status(403).json({ error: "Unauthorized: Admin access required" });
+      }
+      
+      const splashPageData = splashPageSchema.parse(req.body);
+      const splashPage = await storage.updateSplashPage(splashPageData);
+      res.json(splashPage);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+  
+  app.post("/api/splash-page/images", async (req: Request, res: Response) => {
+    try {
+      // Add authentication check to restrict updates to admin users only
+      if (!req.isAuthenticated() || !(req.user as any).isAdmin) {
+        return res.status(403).json({ error: "Unauthorized: Admin access required" });
+      }
+      
+      const { imageUrl } = req.body;
+      if (!imageUrl) {
+        return res.status(400).json({ error: "Image URL is required" });
+      }
+      const splashPage = await storage.addSplashPageImage(imageUrl);
+      res.json(splashPage);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+  
+  app.delete("/api/splash-page/images", async (req: Request, res: Response) => {
+    try {
+      // Add authentication check to restrict updates to admin users only
+      if (!req.isAuthenticated() || !(req.user as any).isAdmin) {
+        return res.status(403).json({ error: "Unauthorized: Admin access required" });
+      }
+      
+      const { imageUrl } = req.body;
+      if (!imageUrl) {
+        return res.status(400).json({ error: "Image URL is required" });
+      }
+      const splashPage = await storage.removeSplashPageImage(imageUrl);
+      res.json(splashPage);
     } catch (error) {
       handleError(res, error);
     }

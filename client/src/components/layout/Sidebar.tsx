@@ -1,7 +1,8 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { DashboardIcon, GridIcon, UserIcon, SettingsIcon, HelpIcon } from "@/lib/icons";
+import { Grid } from "@shared/schema";
+import { DashboardIcon, GridIcon, UserIcon, SettingsIcon, HelpIcon, SplashIcon } from "@/lib/icons";
 
 type NavItemProps = {
   href: string;
@@ -32,7 +33,7 @@ export default function Sidebar() {
   const [location] = useLocation();
   
   // Fetch grid status
-  const { data: grid } = useQuery({
+  const { data: grid } = useQuery<Grid | undefined>({
     queryKey: ['/api/grids/1'],
   });
 
@@ -79,6 +80,14 @@ export default function Sidebar() {
                 isActive={location === '/settings'}
               >
                 Settings
+              </NavItem>
+              
+              <NavItem 
+                href="/splash-page" 
+                icon={<SplashIcon />}
+                isActive={location === '/splash-page'}
+              >
+                Splash Page
               </NavItem>
               
               <NavItem 
