@@ -1,6 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AppLayout from "@/components/layout/AppLayout";
 import LoginPageSettings from "@/components/settings/LoginPageSettings";
+import GridSettings from "@/components/settings/GridSettings";
 
 export default function Settings() {
   return (
@@ -43,13 +44,8 @@ export default function Settings() {
                   Configure technical settings for your OpenSimulator grid including
                   database connections, networking, and performance parameters.
                 </p>
-                <div className="rounded-md bg-amber-50 p-4 dark:bg-amber-950/50">
-                  <p className="text-sm text-amber-800 dark:text-amber-200">
-                    These settings are coming soon. They will allow customization of 
-                    core grid parameters.
-                  </p>
-                </div>
               </div>
+              <GridSettings />
             </TabsContent>
             
             <TabsContent value="security" className="space-y-4">
