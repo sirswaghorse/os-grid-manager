@@ -57,6 +57,13 @@ export default function AppLayout({ children }: AppLayoutProps) {
         
         <main className="flex-1 relative overflow-y-auto focus:outline-none p-4 md:p-6 bg-gray-50">
           {children}
+          
+          {/* Attribution footer */}
+          <div className="mt-8 pt-4 border-t border-gray-200">
+            <p className="text-xs text-center text-gray-500">
+              OS Grid Manager created by SirSwagHorse
+            </p>
+          </div>
         </main>
       </div>
     </div>
