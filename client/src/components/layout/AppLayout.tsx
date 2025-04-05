@@ -21,6 +21,8 @@ const getPageTitle = (path: string) => {
       return "Users";
     case "/settings":
       return "Settings";
+    case "/splash-page":
+      return "Splash Page";
     case "/help":
       return "Help";
     default:

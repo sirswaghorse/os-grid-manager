@@ -27,15 +27,15 @@ function NavItem({ href, icon, children, active, onClick }: NavItemProps) {
   return (
     <li className="mt-2">
       <Link href={href}>
-        <a
-          className={`flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-900 transition-all ${
+        <div
+          className={`flex items-center gap-3 rounded-lg px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-900 transition-all cursor-pointer ${
             active ? "bg-gray-100 dark:bg-gray-900 text-primary font-medium" : ""
           }`}
           onClick={onClick}
         >
           {icon}
           <span>{children}</span>
-        </a>
+        </div>
       </Link>
     </li>
   );
@@ -142,10 +142,10 @@ export default function UserLayout({ children }: UserLayoutProps) {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link href="/account">
-                      <a className="flex items-center gap-2 cursor-pointer w-full">
+                      <div className="flex items-center gap-2 cursor-pointer w-full">
                         <User className="h-4 w-4" />
                         Profile
-                      </a>
+                      </div>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem
@@ -191,10 +191,10 @@ export default function UserLayout({ children }: UserLayoutProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link href="/account">
-                    <a className="flex items-center gap-2 cursor-pointer w-full">
+                    <div className="flex items-center gap-2 cursor-pointer w-full">
                       <User className="h-4 w-4" />
                       Profile
-                    </a>
+                    </div>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem

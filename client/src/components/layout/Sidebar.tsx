@@ -14,9 +14,9 @@ type NavItemProps = {
 const NavItem = ({ href, icon, children, isActive }: NavItemProps) => {
   return (
     <Link href={href}>
-      <a
+      <div
         className={cn(
-          "group flex items-center px-2 py-2 text-sm font-medium rounded-md",
+          "group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer",
           isActive
             ? "bg-primary text-white"
             : "text-gray-700 hover:bg-gray-100"
@@ -24,7 +24,7 @@ const NavItem = ({ href, icon, children, isActive }: NavItemProps) => {
       >
         <span className="mr-3 text-lg">{icon}</span>
         {children}
-      </a>
+      </div>
     </Link>
   );
 };
