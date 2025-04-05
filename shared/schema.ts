@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, numeric } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, numeric, timestamp, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -171,3 +171,112 @@ export type UserRegistration = z.infer<typeof userRegistrationSchema>;
 export type LoginCustomization = z.infer<typeof loginCustomizationSchema>;
 
 export type SplashPage = z.infer<typeof splashPageSchema>;
+
+// Marketplace Item model
+export const marketplaceItems = pgTable("marketplace_items", {
+  id: serial("id").primaryKey(),
+  sellerId: integer("seller_id").notNull(), // User who's selling the item
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull(),
+  price: numeric("price").notNull(),
+  inWorldLocation: text("in_world_location"), // Where to find the item in-world
+  createdAt: text("created_at").notNull().default(new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().default(new Date().toISOString()),
+  status: text("status").notNull().default("pending"), // pending, approved, rejected, removed
+  isEnabled: boolean("is_enabled").notNull().default(true),
+  permissions: text("permissions").notNull().default("copy"), // copy, transfer, modify - comma separated
+  images: text("images").array(), // Array of image URLs
+  tags: text("tags").array(), // Array of tags for search
+});
+
+// Marketplace Purchase model
+export const marketplacePurchases = pgTable("marketplace_purchases", {
+  id: serial("id").primaryKey(),
+  itemId: integer("item_id").notNull(),
+  buyerId: integer("buyer_id").notNull(),
+  sellerId: integer("seller_id").notNull(),
+  price: numeric("price").notNull(),
+  purchaseDate: text("purchase_date").notNull().default(new Date().toISOString()),
+  deliveryStatus: text("delivery_status").notNull().default("pending"), // pending, delivered, failed
+  deliveryLocation: text("delivery_location"), // In-world location for delivery
+  deliveryAttempts: integer("delivery_attempts").notNull().default(0),
+  lastDeliveryAttempt: text("last_delivery_attempt"),
+});
+
+// User Inventory model
+export const userInventory = pgTable("user_inventory", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  itemName: text("item_name").notNull(),
+  itemType: text("item_type").notNull(), // object, texture, script, etc.
+  description: text("description"),
+  uploadDate: text("upload_date").notNull().default(new Date().toISOString()),
+  inWorldId: text("in_world_id").notNull(), // UUID of the item in OpenSim
+  isListed: boolean("is_listed").notNull().default(false), // Whether it's listed in marketplace
+  marketplaceItemId: integer("marketplace_item_id"), // Link to marketplace item if listed
+  thumbnailUrl: text("thumbnail_url"),
+  permissions: text("permissions").notNull().default("copy"), // copy, transfer, modify - comma separated
+});
+
+// Marketplace Category model
+export const marketplaceCategories = pgTable("marketplace_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  parentId: integer("parent_id"), // For hierarchical categories
+  displayOrder: integer("display_order").notNull().default(0),
+  isEnabled: boolean("is_enabled").notNull().default(true),
+});
+
+// Marketplace Settings model 
+export const marketplaceSettings = pgTable("marketplace_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+  description: text("description"),
+  updatedAt: text("updated_at").notNull().default(new Date().toISOString()),
+});
+
+// Create Zod schemas for marketplace components
+export const insertMarketplaceItemSchema = createInsertSchema(marketplaceItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMarketplacePurchaseSchema = createInsertSchema(marketplacePurchases).omit({
+  id: true,
+  purchaseDate: true,
+  lastDeliveryAttempt: true,
+});
+
+export const insertUserInventorySchema = createInsertSchema(userInventory).omit({
+  id: true,
+  uploadDate: true,
+});
+
+export const insertMarketplaceCategorySchema = createInsertSchema(marketplaceCategories).omit({
+  id: true,
+});
+
+export const insertMarketplaceSettingSchema = createInsertSchema(marketplaceSettings).omit({
+  id: true,
+  updatedAt: true,
+});
+
+// TypeScript types for marketplace components
+export type InsertMarketplaceItem = z.infer<typeof insertMarketplaceItemSchema>;
+export type MarketplaceItem = typeof marketplaceItems.$inferSelect;
+
+export type InsertMarketplacePurchase = z.infer<typeof insertMarketplacePurchaseSchema>;
+export type MarketplacePurchase = typeof marketplacePurchases.$inferSelect;
+
+export type InsertUserInventory = z.infer<typeof insertUserInventorySchema>;
+export type UserInventory = typeof userInventory.$inferSelect;
+
+export type InsertMarketplaceCategory = z.infer<typeof insertMarketplaceCategorySchema>;
+export type MarketplaceCategory = typeof marketplaceCategories.$inferSelect;
+
+export type InsertMarketplaceSetting = z.infer<typeof insertMarketplaceSettingSchema>;
+export type MarketplaceSetting = typeof marketplaceSettings.$inferSelect;

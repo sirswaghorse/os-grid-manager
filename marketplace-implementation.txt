@@ -1,0 +1,241 @@
+  // Marketplace Item operations
+  async getMarketplaceItem(id: number): Promise<MarketplaceItem | undefined> {
+    return this.marketplaceItems.get(id);
+  }
+  
+  async getMarketplaceItemsBySeller(sellerId: number): Promise<MarketplaceItem[]> {
+    return Array.from(this.marketplaceItems.values()).filter(
+      (item) => item.sellerId === sellerId
+    );
+  }
+  
+  async getMarketplaceItemsByCategory(category: string): Promise<MarketplaceItem[]> {
+    return Array.from(this.marketplaceItems.values()).filter(
+      (item) => item.category === category && item.isEnabled && item.status === "approved"
+    );
+  }
+  
+  async getAllMarketplaceItems(filters?: { status?: string, category?: string }): Promise<MarketplaceItem[]> {
+    let items = Array.from(this.marketplaceItems.values());
+    
+    if (filters) {
+      if (filters.status) {
+        items = items.filter(item => item.status === filters.status);
+      }
+      
+      if (filters.category) {
+        items = items.filter(item => item.category === filters.category);
+      }
+    }
+    
+    return items;
+  }
+  
+  async createMarketplaceItem(insertItem: InsertMarketplaceItem): Promise<MarketplaceItem> {
+    const id = this.marketplaceItemCurrentId++;
+    const now = new Date().toISOString();
+    
+    const item: MarketplaceItem = {
+      ...insertItem,
+      id,
+      createdAt: now,
+      updatedAt: now,
+      status: insertItem.status || "pending",
+      isEnabled: insertItem.isEnabled ?? true,
+      permissions: insertItem.permissions || "copy",
+      images: insertItem.images || [],
+      tags: insertItem.tags || []
+    };
+    
+    this.marketplaceItems.set(id, item);
+    return item;
+  }
+  
+  async updateMarketplaceItem(id: number, updates: Partial<MarketplaceItem>): Promise<MarketplaceItem | undefined> {
+    const item = this.marketplaceItems.get(id);
+    if (!item) return undefined;
+    
+    const now = new Date().toISOString();
+    const updatedItem = { 
+      ...item, 
+      ...updates,
+      updatedAt: now
+    };
+    
+    this.marketplaceItems.set(id, updatedItem);
+    return updatedItem;
+  }
+  
+  async deleteMarketplaceItem(id: number): Promise<boolean> {
+    return this.marketplaceItems.delete(id);
+  }
+  
+  // Marketplace Purchase operations
+  async getMarketplacePurchase(id: number): Promise<MarketplacePurchase | undefined> {
+    return this.marketplacePurchases.get(id);
+  }
+  
+  async getMarketplacePurchasesByBuyer(buyerId: number): Promise<MarketplacePurchase[]> {
+    return Array.from(this.marketplacePurchases.values()).filter(
+      (purchase) => purchase.buyerId === buyerId
+    );
+  }
+  
+  async getMarketplacePurchasesBySeller(sellerId: number): Promise<MarketplacePurchase[]> {
+    return Array.from(this.marketplacePurchases.values()).filter(
+      (purchase) => purchase.sellerId === sellerId
+    );
+  }
+  
+  async getPendingDeliveries(): Promise<MarketplacePurchase[]> {
+    return Array.from(this.marketplacePurchases.values()).filter(
+      (purchase) => purchase.deliveryStatus === "pending"
+    );
+  }
+  
+  async createMarketplacePurchase(insertPurchase: InsertMarketplacePurchase): Promise<MarketplacePurchase> {
+    const id = this.marketplacePurchaseCurrentId++;
+    const purchaseDate = new Date().toISOString();
+    
+    const purchase: MarketplacePurchase = {
+      ...insertPurchase,
+      id,
+      purchaseDate,
+      deliveryStatus: insertPurchase.deliveryStatus || "pending",
+      deliveryAttempts: insertPurchase.deliveryAttempts || 0,
+      lastDeliveryAttempt: null,
+      deliveryLocation: insertPurchase.deliveryLocation || null
+    };
+    
+    this.marketplacePurchases.set(id, purchase);
+    return purchase;
+  }
+  
+  async updateMarketplacePurchase(id: number, updates: Partial<MarketplacePurchase>): Promise<MarketplacePurchase | undefined> {
+    const purchase = this.marketplacePurchases.get(id);
+    if (!purchase) return undefined;
+    
+    const updatedPurchase = { ...purchase, ...updates };
+    this.marketplacePurchases.set(id, updatedPurchase);
+    return updatedPurchase;
+  }
+  
+  // User Inventory operations
+  async getUserInventoryItem(id: number): Promise<UserInventory | undefined> {
+    return this.userInventory.get(id);
+  }
+  
+  async getUserInventoryByUser(userId: number): Promise<UserInventory[]> {
+    return Array.from(this.userInventory.values()).filter(
+      (item) => item.userId === userId
+    );
+  }
+  
+  async createUserInventoryItem(insertItem: InsertUserInventory): Promise<UserInventory> {
+    const id = this.userInventoryCurrentId++;
+    const uploadDate = new Date().toISOString();
+    
+    const item: UserInventory = {
+      ...insertItem,
+      id,
+      uploadDate,
+      isListed: insertItem.isListed || false,
+      marketplaceItemId: insertItem.marketplaceItemId || null,
+      thumbnailUrl: insertItem.thumbnailUrl || null,
+      permissions: insertItem.permissions || "copy",
+      description: insertItem.description || null
+    };
+    
+    this.userInventory.set(id, item);
+    return item;
+  }
+  
+  async updateUserInventoryItem(id: number, updates: Partial<UserInventory>): Promise<UserInventory | undefined> {
+    const item = this.userInventory.get(id);
+    if (!item) return undefined;
+    
+    const updatedItem = { ...item, ...updates };
+    this.userInventory.set(id, updatedItem);
+    return updatedItem;
+  }
+  
+  async deleteUserInventoryItem(id: number): Promise<boolean> {
+    return this.userInventory.delete(id);
+  }
+  
+  // Marketplace Category operations
+  async getMarketplaceCategory(id: number): Promise<MarketplaceCategory | undefined> {
+    return this.marketplaceCategories.get(id);
+  }
+  
+  async getAllMarketplaceCategories(): Promise<MarketplaceCategory[]> {
+    return Array.from(this.marketplaceCategories.values()).filter(
+      category => category.isEnabled
+    );
+  }
+  
+  async createMarketplaceCategory(insertCategory: InsertMarketplaceCategory): Promise<MarketplaceCategory> {
+    const id = this.marketplaceCategoryCurrentId++;
+    
+    const category: MarketplaceCategory = {
+      ...insertCategory,
+      id,
+      isEnabled: insertCategory.isEnabled ?? true,
+      parentId: insertCategory.parentId || null,
+      description: insertCategory.description || null
+    };
+    
+    this.marketplaceCategories.set(id, category);
+    return category;
+  }
+  
+  async updateMarketplaceCategory(id: number, updates: Partial<MarketplaceCategory>): Promise<MarketplaceCategory | undefined> {
+    const category = this.marketplaceCategories.get(id);
+    if (!category) return undefined;
+    
+    const updatedCategory = { ...category, ...updates };
+    this.marketplaceCategories.set(id, updatedCategory);
+    return updatedCategory;
+  }
+  
+  async deleteMarketplaceCategory(id: number): Promise<boolean> {
+    return this.marketplaceCategories.delete(id);
+  }
+  
+  // Marketplace Settings operations
+  async getMarketplaceSetting(key: string): Promise<MarketplaceSetting | undefined> {
+    return this.marketplaceSettings.get(key);
+  }
+  
+  async getAllMarketplaceSettings(): Promise<MarketplaceSetting[]> {
+    return Array.from(this.marketplaceSettings.values());
+  }
+  
+  async createMarketplaceSetting(insertSetting: InsertMarketplaceSetting): Promise<MarketplaceSetting> {
+    const id = this.settingCurrentId++;
+    const updatedAt = new Date().toISOString();
+    
+    const setting: MarketplaceSetting = {
+      ...insertSetting,
+      id,
+      updatedAt,
+      description: insertSetting.description || null
+    };
+    
+    this.marketplaceSettings.set(setting.key, setting);
+    return setting;
+  }
+  
+  async updateMarketplaceSetting(key: string, value: string): Promise<MarketplaceSetting | undefined> {
+    const setting = this.marketplaceSettings.get(key);
+    if (!setting) return undefined;
+    
+    const updatedAt = new Date().toISOString();
+    const updatedSetting = { ...setting, value, updatedAt };
+    this.marketplaceSettings.set(key, updatedSetting);
+    return updatedSetting;
+  }
+  
+  async deleteMarketplaceSetting(key: string): Promise<boolean> {
+    return this.marketplaceSettings.delete(key);
+  }
