@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getAvatarById } from "@/lib/avatarTypes";
-import { Home, Menu, Grid, User, HelpCircle, Settings, LogOut } from "lucide-react";
+import { Home, Menu, Grid, User, HelpCircle, Settings, LogOut, Package, ShoppingBag } from "lucide-react";
 
 interface NavItemProps {
   href: string;
@@ -102,6 +102,22 @@ export default function UserLayout({ children }: UserLayoutProps) {
                 onClick={() => isMobile && setSidebarOpen(false)}
               >
                 Account
+              </NavItem>
+              <NavItem
+                href="/marketplace"
+                icon={<ShoppingBag className="h-5 w-5" />}
+                active={location === "/marketplace" || location.startsWith("/marketplace/")}
+                onClick={() => isMobile && setSidebarOpen(false)}
+              >
+                Marketplace
+              </NavItem>
+              <NavItem
+                href="/inventory"
+                icon={<Package className="h-5 w-5" />}
+                active={location === "/inventory"}
+                onClick={() => isMobile && setSidebarOpen(false)}
+              >
+                My Inventory
               </NavItem>
               <NavItem
                 href="/help"

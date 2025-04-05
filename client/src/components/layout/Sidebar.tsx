@@ -2,7 +2,15 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Grid } from "@shared/schema";
-import { DashboardIcon, GridIcon, UserIcon, SettingsIcon, HelpIcon, SplashIcon } from "@/lib/icons";
+import { 
+  DashboardIcon, 
+  GridIcon, 
+  UserIcon, 
+  SettingsIcon, 
+  HelpIcon, 
+  SplashIcon,
+  MarketplaceIcon 
+} from "@/lib/icons";
 
 type NavItemProps = {
   href: string;
@@ -88,6 +96,14 @@ export default function Sidebar() {
                 isActive={location === '/splash-page'}
               >
                 Splash Page
+              </NavItem>
+              
+              <NavItem 
+                href="/marketplace" 
+                icon={<MarketplaceIcon />}
+                isActive={location === '/marketplace' || location.startsWith('/marketplace/')}
+              >
+                Marketplace
               </NavItem>
               
               <NavItem 

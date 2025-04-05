@@ -16,6 +16,12 @@ import {
   X,
   Check,
   Image,
+  ShoppingBag,
+  Package,
+  Store,
+  Tag,
+  ShoppingCart,
+  List,
   LucideProps
 } from "lucide-react";
 
@@ -85,4 +91,28 @@ export function CheckIcon(props: LucideProps) {
 
 export function SplashIcon(props: LucideProps) {
   return <Image {...props} />;
+}
+
+export function MarketplaceIcon(props: LucideProps) {
+  return <Store {...props} />;
+}
+
+export function InventoryIcon(props: LucideProps) {
+  return <Package {...props} />;
+}
+
+export function ShoppingBagIcon(props: LucideProps) {
+  return <ShoppingBag {...props} />;
+}
+
+export function TagIcon(props: LucideProps) {
+  return <Tag {...props} />;
+}
+
+export function ShoppingCartIcon(props: LucideProps) {
+  return <ShoppingCart {...props} />;
+}
+
+export function ListIcon(props: LucideProps) {
+  return <List {...props} />;
 }
