@@ -2,8 +2,6 @@
 
 A comprehensive web-based management platform for OpenSimulator that simplifies virtual world infrastructure management through intuitive, user-friendly interfaces.
 
-![OS Grid Manager Screenshot](https://github.com/sirswaghorse/os-grid-manager/assets/screenshot.png)
-
 ## Overview
 
 OS Grid Manager provides a "one-click" setup experience for creating and managing OpenSimulator virtual worlds (grids). With an easy-to-use web interface, it allows both technical and non-technical users to:
@@ -114,7 +112,6 @@ This application is built with:
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit pull requests.
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
