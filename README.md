@@ -2,6 +2,8 @@
 
 A comprehensive web-based management platform for OpenSimulator that simplifies virtual world infrastructure management through intuitive, user-friendly interfaces.
 
+![Login Screen](assets/images/login-screen.png)
+
 ## Overview
 
 OS Grid Manager provides a "one-click" setup experience for creating and managing OpenSimulator virtual worlds (grids). With an easy-to-use web interface, it allows both technical and non-technical users to:
@@ -11,6 +13,17 @@ OS Grid Manager provides a "one-click" setup experience for creating and managin
 - Customize login screens and splash pages
 - Facilitate region purchases with integrated payment processing
 - Browse and manage marketplace items (Beta)
+
+## Screenshots
+
+### Admin Dashboard
+![Admin Dashboard](assets/images/admin-dashboard.png)
+
+### User Region Management
+![User Regions](assets/images/user-regions.png)
+
+### Marketplace (Beta)
+![Marketplace](assets/images/marketplace.png)
 
 ## Features
 
@@ -38,24 +51,9 @@ OS Grid Manager provides a "one-click" setup experience for creating and managin
 
 ### Quick Start
 
-1. Clone the repository:
-```bash
-git clone https://github.com/sirswaghorse/os-grid-manager.git
-cd os-grid-manager
-```
-
-2. Install dependencies:
-```bash
-npm install
-```
-
-3. Start the application:
-```bash
-npm run dev  # For development
-# or
-npm run start  # For production
-```
-
+1. Clone the repository
+2. Install dependencies
+3. Start the application
 4. Access the admin panel at `http://your-server:5000`
 5. Default login: 
    - Username: `admin`
@@ -72,15 +70,7 @@ For production environments:
    - Port 8002: Grid login
    - Port 8003: Grid services
    - Ports 9000+: For individual regions
-
-3. Install PM2 for process management:
-```bash
-npm install -g pm2
-pm2 start npm --name "os-grid-manager" -- run start
-pm2 save
-pm2 startup
-```
-
+3. Use a process manager for production deployments
 4. Consider setting up Nginx as a reverse proxy with SSL/TLS
 
 ## System Requirements
@@ -112,12 +102,7 @@ This application is built with:
 
 ## Contributing
 
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Contributions are welcome! Please feel free to submit pull requests.
 
 ## License
 
