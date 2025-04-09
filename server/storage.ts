@@ -267,6 +267,7 @@ export class MemStorage implements IStorage {
       id: this.regionCurrentId++,
       gridId: sampleGrid.id,
       name: "Welcome Island",
+      description: "The first landing point for new visitors to the grid",
       positionX: 1000,
       positionY: 1000,
       sizeX: 256,
@@ -276,6 +277,13 @@ export class MemStorage implements IStorage {
       status: "online",
       isRunning: true,
       ownerId: null,
+      ownerName: "Grid Admin",
+      regionType: "welcome",
+      maturity: "general",
+      maxVisitors: 20,
+      visitCount: 125,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       isPendingSetup: null
     };
     this.regions.set(welcomeIsland.id, welcomeIsland);
@@ -284,6 +292,7 @@ export class MemStorage implements IStorage {
       id: this.regionCurrentId++,
       gridId: sampleGrid.id,
       name: "Market Plaza",
+      description: "Central marketplace for shopping and trading",
       positionX: 1000,
       positionY: 1256,
       sizeX: 512,
@@ -293,6 +302,13 @@ export class MemStorage implements IStorage {
       status: "online",
       isRunning: true,
       ownerId: null,
+      ownerName: "Grid Admin",
+      regionType: "commercial",
+      maturity: "general",
+      maxVisitors: 30,
+      visitCount: 87,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       isPendingSetup: null
     };
     this.regions.set(marketPlaza.id, marketPlaza);
@@ -301,6 +317,7 @@ export class MemStorage implements IStorage {
       id: this.regionCurrentId++,
       gridId: sampleGrid.id,
       name: "Events Center",
+      description: "Venue for grid-wide events and gatherings",
       positionX: 1512,
       positionY: 1000,
       sizeX: 256,
@@ -310,6 +327,13 @@ export class MemStorage implements IStorage {
       status: "online",
       isRunning: true,
       ownerId: null,
+      ownerName: "Grid Admin",
+      regionType: "event",
+      maturity: "general",
+      maxVisitors: 50,
+      visitCount: 63,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       isPendingSetup: null
     };
     this.regions.set(eventsCenter.id, eventsCenter);
@@ -318,6 +342,7 @@ export class MemStorage implements IStorage {
       id: this.regionCurrentId++,
       gridId: sampleGrid.id,
       name: "Sandbox",
+      description: "Free-build area for users to experiment with building",
       positionX: 1512,
       positionY: 1256,
       sizeX: 1024,
@@ -327,6 +352,13 @@ export class MemStorage implements IStorage {
       status: "restarting",
       isRunning: false,
       ownerId: null,
+      ownerName: "Grid Admin",
+      regionType: "sandbox",
+      maturity: "general",
+      maxVisitors: 15,
+      visitCount: 42,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       isPendingSetup: null
     };
     this.regions.set(sandbox.id, sandbox);
@@ -670,16 +702,25 @@ export class MemStorage implements IStorage {
   
   async createRegion(insertRegion: InsertRegion): Promise<Region> {
     const id = this.regionCurrentId++;
+    const now = new Date().toISOString();
     // Ensure all required fields have values
     const region: Region = { 
       ...insertRegion, 
       id,
+      description: insertRegion.description || null,
       status: insertRegion.status || "offline",
       sizeX: insertRegion.sizeX || 256,
       sizeY: insertRegion.sizeY || 256,
       template: insertRegion.template || "empty",
       isRunning: insertRegion.isRunning || false,
       ownerId: insertRegion.ownerId || null,
+      ownerName: insertRegion.ownerName || null,
+      regionType: insertRegion.regionType || null,
+      maturity: insertRegion.maturity || "general",
+      maxVisitors: insertRegion.maxVisitors || null,
+      visitCount: insertRegion.visitCount || 0,
+      createdAt: insertRegion.createdAt || now,
+      updatedAt: insertRegion.updatedAt || now,
       isPendingSetup: insertRegion.isPendingSetup || null
     };
     this.regions.set(id, region);

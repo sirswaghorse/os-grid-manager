@@ -21,6 +21,7 @@ export const regions = pgTable("regions", {
   id: serial("id").primaryKey(),
   gridId: integer("grid_id").notNull(),
   name: text("name").notNull(),
+  description: text("description"),
   positionX: integer("position_x").notNull(),
   positionY: integer("position_y").notNull(),
   sizeX: integer("size_x").notNull().default(256),
@@ -30,6 +31,13 @@ export const regions = pgTable("regions", {
   status: text("status").notNull().default("offline"),
   isRunning: boolean("is_running").notNull().default(false),
   ownerId: integer("owner_id"), // User ID who owns this region (null for grid-owned regions)
+  ownerName: text("owner_name"), // Owner's display name for easy reference
+  regionType: text("region_type"), // e.g., "sandbox", "residential", "commercial", "event"
+  maturity: text("maturity").default("general"), // Content rating: "general", "moderate", "adult"
+  maxVisitors: integer("max_visitors"), // Maximum concurrent visitors allowed
+  visitCount: integer("visit_count").default(0), // Track popularity
+  createdAt: text("created_at").notNull().default(new Date().toISOString()),
+  updatedAt: text("updated_at").notNull().default(new Date().toISOString()),
   isPendingSetup: boolean("is_pending_setup").default(false), // Flag for regions that need admin setup
 });
 
