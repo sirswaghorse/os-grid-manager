@@ -4,9 +4,10 @@ import { useAuth } from "../hooks/use-auth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Globe, Home, MapPin, Search, Server } from "lucide-react";
+import { Clock, Globe, Home, MapPin, Search, Server, Coins } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import RegionSearch from "@/components/regions/RegionSearch";
+import CurrencyPurchase from "@/components/currency/CurrencyPurchase";
 
 export default function UserDashboard() {
   const { user } = useAuth();
@@ -39,10 +40,14 @@ export default function UserDashboard() {
       </div>
       
       <Tabs defaultValue="overview" onValueChange={handleTabChange}>
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5 mb-4">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-6 mb-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="regions">My Regions</TabsTrigger>
           <TabsTrigger value="search">Find Regions</TabsTrigger>
+          <TabsTrigger value="currency">
+            <Coins className="h-4 w-4 mr-1" />
+            Currency
+          </TabsTrigger>
           <TabsTrigger value="inventory" className="hidden lg:block">Inventory</TabsTrigger>
           <TabsTrigger value="account" className="hidden lg:block">My Account</TabsTrigger>
         </TabsList>
@@ -192,6 +197,10 @@ export default function UserDashboard() {
         
         <TabsContent value="search">
           <RegionSearch />
+        </TabsContent>
+        
+        <TabsContent value="currency">
+          <CurrencyPurchase />
         </TabsContent>
         
         <TabsContent value="inventory" className="space-y-6">

@@ -1,6 +1,7 @@
 import { 
   users, regions, grids, avatars, regionSizes, regionPurchases,
   marketplaceItems, marketplacePurchases, userInventory, marketplaceCategories, marketplaceSettings,
+  currencySettings, currencyTransactions,
   type User, type InsertUser, 
   type Grid, type InsertGrid,
   type Region, type InsertRegion,
@@ -14,7 +15,9 @@ import {
   type UserInventory, type InsertUserInventory,
   type MarketplaceCategory, type InsertMarketplaceCategory,
   type MarketplaceSetting, type InsertMarketplaceSetting,
-  type SecuritySettings
+  type SecuritySettings,
+  type CurrencySetting, type InsertCurrencySettings,
+  type CurrencyTransaction, type InsertCurrencyTransaction
 } from "@shared/schema";
 
 export interface IStorage {
@@ -118,6 +121,16 @@ export interface IStorage {
   createMarketplaceSetting(setting: InsertMarketplaceSetting): Promise<MarketplaceSetting>;
   updateMarketplaceSetting(key: string, value: string): Promise<MarketplaceSetting | undefined>;
   deleteMarketplaceSetting(key: string): Promise<boolean>;
+  
+  // Currency settings operations
+  getCurrencySettings(): Promise<CurrencySetting>;
+  updateCurrencySettings(settings: Partial<CurrencySetting>): Promise<CurrencySetting>;
+  
+  // Currency transaction operations
+  getCurrencyTransaction(id: number): Promise<CurrencyTransaction | undefined>;
+  getCurrencyTransactionsByUser(userId: number): Promise<CurrencyTransaction[]>;
+  createCurrencyTransaction(transaction: InsertCurrencyTransaction): Promise<CurrencyTransaction>;
+  updateCurrencyTransaction(id: number, transaction: Partial<CurrencyTransaction>): Promise<CurrencyTransaction | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -1241,6 +1254,77 @@ export class MemStorage implements IStorage {
   
   async deleteMarketplaceSetting(key: string): Promise<boolean> {
     return this.marketplaceSettings.delete(key);
+  }
+
+  private currencySettings: CurrencySetting = {
+    id: 1,
+    enabled: false,
+    currencyName: 'Grid Coins',
+    exchangeRate: '250',
+    minPurchase: '5.00',
+    maxPurchase: '100.00',
+    paypalEmail: '',
+    paypalClientId: '',
+    paypalSecret: '',
+    lastUpdated: new Date()
+  };
+
+  private currencyTransactions: Map<number, CurrencyTransaction> = new Map();
+  private currencyTransactionCurrentId: number = 1;
+
+  async getCurrencySettings(): Promise<CurrencySetting> {
+    return this.currencySettings;
+  }
+
+  async updateCurrencySettings(settings: Partial<CurrencySetting>): Promise<CurrencySetting> {
+    this.currencySettings = {
+      ...this.currencySettings,
+      ...settings,
+      lastUpdated: new Date()
+    };
+    return this.currencySettings;
+  }
+
+  async getCurrencyTransaction(id: number): Promise<CurrencyTransaction | undefined> {
+    return this.currencyTransactions.get(id);
+  }
+
+  async getCurrencyTransactionsByUser(userId: number): Promise<CurrencyTransaction[]> {
+    return Array.from(this.currencyTransactions.values())
+      .filter(transaction => transaction.userId === userId);
+  }
+
+  async createCurrencyTransaction(transaction: InsertCurrencyTransaction): Promise<CurrencyTransaction> {
+    const newTransaction: CurrencyTransaction = {
+      id: this.currencyTransactionCurrentId++,
+      userId: transaction.userId,
+      amount: transaction.amount,
+      usdAmount: transaction.usdAmount,
+      status: transaction.status,
+      paymentProcessor: transaction.paymentProcessor || 'paypal',
+      paymentId: transaction.paymentId || null,
+      createdAt: new Date(),
+      completedAt: null
+    };
+    this.currencyTransactions.set(newTransaction.id, newTransaction);
+    return newTransaction;
+  }
+
+  async updateCurrencyTransaction(id: number, transaction: Partial<CurrencyTransaction>): Promise<CurrencyTransaction | undefined> {
+    const currentTransaction = this.currencyTransactions.get(id);
+    
+    if (!currentTransaction) {
+      return undefined;
+    }
+    
+    const updatedTransaction = {
+      ...currentTransaction,
+      ...transaction
+    };
+    
+    this.currencyTransactions.set(id, updatedTransaction);
+    
+    return updatedTransaction;
   }
 }
 

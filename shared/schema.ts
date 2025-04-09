@@ -320,3 +320,46 @@ export const versionCheckSchema = z.object({
 });
 
 export type VersionCheck = z.infer<typeof versionCheckSchema>;
+
+// Currency settings and transactions
+export const currencySettings = pgTable("currency_settings", {
+  id: serial("id").primaryKey(),
+  enabled: boolean("enabled").default(false),
+  currencyName: text("currency_name").default("Grid Coins"),
+  exchangeRate: text("exchange_rate").default("250"), // How many grid coins per USD
+  minPurchase: text("min_purchase").default("5.00"), // Minimum USD purchase
+  maxPurchase: text("max_purchase").default("100.00"), // Maximum USD purchase
+  paypalEmail: text("paypal_email").default(""),
+  paypalClientId: text("paypal_client_id").default(""),
+  paypalSecret: text("paypal_secret").default(""),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+});
+
+export const currencyTransactions = pgTable("currency_transactions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  amount: text("amount").notNull(), // Grid currency amount
+  usdAmount: text("usd_amount").notNull(), // USD amount
+  status: text("status").notNull(), // pending, completed, failed, refunded
+  paymentProcessor: text("payment_processor").notNull().default("paypal"),
+  paymentId: text("payment_id"), // Payment processor transaction ID
+  createdAt: timestamp("created_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+export const insertCurrencySettingsSchema = createInsertSchema(currencySettings).omit({
+  id: true,
+  lastUpdated: true
+});
+
+export const insertCurrencyTransactionSchema = createInsertSchema(currencyTransactions).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true
+});
+
+export type InsertCurrencySettings = z.infer<typeof insertCurrencySettingsSchema>;
+export type CurrencySetting = typeof currencySettings.$inferSelect;
+
+export type InsertCurrencyTransaction = z.infer<typeof insertCurrencyTransactionSchema>;
+export type CurrencyTransaction = typeof currencyTransactions.$inferSelect;

@@ -1124,6 +1124,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Currency Settings Endpoints
+  app.get("/api/currency/settings", async (req: Request, res: Response) => {
+    try {
+      const settings = await storage.getCurrencySettings();
+      res.json(settings);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+
+  app.put("/api/currency/settings", async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated() || !req.user.isAdmin) {
+        return res.status(401).send("Only admins can update currency settings");
+      }
+      
+      const updatedSettings = await storage.updateCurrencySettings(req.body);
+      res.json(updatedSettings);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+
+  // Currency Transactions Endpoints
+  app.get("/api/currency/transactions", async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const userId = req.user.id;
+      const transactions = await storage.getCurrencyTransactionsByUser(userId);
+      res.json(transactions);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+
+  app.get("/api/currency/transactions/:id", async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const userId = req.user.id;
+      const transactionId = parseInt(req.params.id);
+      
+      const transaction = await storage.getCurrencyTransaction(transactionId);
+      
+      if (!transaction) {
+        return res.status(404).json({ error: "Transaction not found" });
+      }
+      
+      // Users can only access their own transactions unless they're admin
+      if (transaction.userId !== userId && !req.user.isAdmin) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+      
+      res.json(transaction);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+
+  app.post("/api/currency/purchase", async (req: Request, res: Response) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      
+      const userId = req.user.id;
+      const currencySettings = await storage.getCurrencySettings();
+      
+      if (!currencySettings.enabled) {
+        return res.status(400).json({ error: "Currency purchases are currently disabled" });
+      }
+      
+      const { usdAmount } = req.body;
+      
+      const minPurchase = currencySettings.minPurchase || "5.00";
+      const maxPurchase = currencySettings.maxPurchase || "100.00";
+      const exchangeRate = currencySettings.exchangeRate || "100";
+      
+      if (!usdAmount || parseFloat(usdAmount) < parseFloat(minPurchase) || 
+          parseFloat(usdAmount) > parseFloat(maxPurchase)) {
+        return res.status(400).json({ 
+          error: `Amount must be between ${minPurchase} and ${maxPurchase} USD` 
+        });
+      }
+      
+      // Calculate grid currency amount based on exchange rate
+      const gridAmount = (parseFloat(usdAmount) * parseFloat(exchangeRate)).toString();
+      
+      // Create a pending transaction
+      const transaction = await storage.createCurrencyTransaction({
+        userId,
+        amount: gridAmount,
+        usdAmount,
+        status: "pending",
+        paymentProcessor: "paypal"
+      });
+      
+      res.json({
+        transaction,
+        paymentInfo: {
+          currencyName: currencySettings.currencyName,
+          exchangeRate: currencySettings.exchangeRate,
+          gridAmount
+        }
+      });
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+
+  // PayPal webhook endpoint for transaction completion
+  app.post("/api/currency/paypal-webhook", async (req: Request, res: Response) => {
+    try {
+      const { transactionId, paypalTransactionId, status } = req.body;
+      
+      const transaction = await storage.getCurrencyTransaction(parseInt(transactionId));
+      
+      if (!transaction) {
+        return res.status(404).json({ error: "Transaction not found" });
+      }
+      
+      // Update the transaction with PayPal info
+      const updatedTransaction = await storage.updateCurrencyTransaction(transaction.id, {
+        paymentId: paypalTransactionId,
+        status,
+        completedAt: status === "completed" ? new Date() : null
+      });
+      
+      res.json(updatedTransaction);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
