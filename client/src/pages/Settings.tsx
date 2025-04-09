@@ -2,8 +2,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AppLayout from "@/components/layout/AppLayout";
 import LoginPageSettings from "@/components/settings/LoginPageSettings";
 import GridSettings from "@/components/settings/GridSettings";
+import UpdateChecker from "@/components/settings/UpdateChecker";
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Settings() {
+  const { user } = useAuth();
+  const isAdmin = user?.isAdmin;
+
   return (
     <AppLayout>
       <div className="container px-4 py-6 md:px-6 md:py-8">
@@ -14,11 +19,12 @@ export default function Settings() {
           </p>
           
           <Tabs defaultValue="appearance" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+            <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
               <TabsTrigger value="appearance">Appearance</TabsTrigger>
               <TabsTrigger value="grid">Grid Settings</TabsTrigger>
               <TabsTrigger value="security">Security</TabsTrigger>
               <TabsTrigger value="advanced">Advanced</TabsTrigger>
+              {isAdmin && <TabsTrigger value="updates">Updates</TabsTrigger>}
             </TabsList>
             
             <TabsContent value="appearance" className="space-y-6">
@@ -81,6 +87,22 @@ export default function Settings() {
                 </div>
               </div>
             </TabsContent>
+            
+            {isAdmin && (
+              <TabsContent value="updates" className="space-y-4">
+                <div className="space-y-4">
+                  <h2 className="text-xl font-semibold tracking-tight">
+                    Software Updates
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Check for and install the latest updates to OS Grid Manager.
+                    Keeping your software up to date ensures you have the latest features,
+                    security fixes, and performance improvements.
+                  </p>
+                </div>
+                <UpdateChecker />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
       </div>

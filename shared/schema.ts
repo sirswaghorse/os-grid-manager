@@ -280,3 +280,15 @@ export type MarketplaceCategory = typeof marketplaceCategories.$inferSelect;
 
 export type InsertMarketplaceSetting = z.infer<typeof insertMarketplaceSettingSchema>;
 export type MarketplaceSetting = typeof marketplaceSettings.$inferSelect;
+
+// Version check response type
+export const versionCheckSchema = z.object({
+  currentVersion: z.string(),
+  latestVersion: z.string(),
+  updateAvailable: z.boolean(),
+  releaseUrl: z.string().optional(),
+  releaseNotes: z.string().optional(),
+  updateDate: z.string().optional(),
+});
+
+export type VersionCheck = z.infer<typeof versionCheckSchema>;

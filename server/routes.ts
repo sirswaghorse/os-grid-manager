@@ -940,6 +940,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
       handleError(res, error);
     }
   });
+  
+  // Version check API endpoint
+  app.get("/api/version-check", async (req: Request, res: Response) => {
+    try {
+      // Only allow authenticated admins to check for updates
+      if (!req.isAuthenticated() || !req.user.isAdmin) {
+        return res.status(401).send("Only admins can check for updates");
+      }
+      
+      // Get current version from package.json
+      const currentVersion = process.env.npm_package_version || "1.0.0";
+      
+      // Check GitHub for latest release
+      const githubToken = process.env.GITHUB_TOKEN;
+      
+      if (!githubToken) {
+        return res.status(500).json({ message: "GitHub token not available" });
+      }
+      
+      // Make a request to GitHub API to get latest release info
+      const repoOwner = "sirswaghorse";
+      const repoName = "os-grid-manager";
+      
+      const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/releases/latest`, {
+        headers: {
+          "Authorization": `token ${githubToken}`,
+          "Accept": "application/vnd.github.v3+json",
+          "User-Agent": "OSGridManager"
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`GitHub API request failed: ${response.statusText}`);
+      }
+      
+      const releaseData = await response.json();
+      
+      // Extract the version number (typically in format "v1.2.3")
+      const latestVersion = releaseData.tag_name.replace(/^v/, "");
+      
+      // Compare versions to see if update is available
+      // Simple string comparison works for semver in format x.y.z
+      const updateAvailable = latestVersion > currentVersion;
+      
+      res.json({
+        currentVersion,
+        latestVersion,
+        updateAvailable,
+        releaseUrl: releaseData.html_url,
+        releaseNotes: releaseData.body,
+        updateDate: releaseData.published_at
+      });
+    } catch (error: any) {
+      console.error("Version check error:", error);
+      // Fall back to returning current version with no update
+      res.status(200).json({
+        currentVersion: process.env.npm_package_version || "1.0.0",
+        latestVersion: process.env.npm_package_version || "1.0.0",
+        updateAvailable: false,
+        error: error.message || "Unknown error checking for updates"
+      });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
