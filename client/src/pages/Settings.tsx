@@ -2,6 +2,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AppLayout from "@/components/layout/AppLayout";
 import LoginPageSettings from "@/components/settings/LoginPageSettings";
 import GridSettings from "@/components/settings/GridSettings";
+import SecuritySettings from "@/components/settings/SecuritySettings";
 import UpdateChecker from "@/components/settings/UpdateChecker";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -63,12 +64,16 @@ export default function Settings() {
                   Configure security policies, access controls, and authentication
                   settings for your grid.
                 </p>
+              </div>
+              {isAdmin ? (
+                <SecuritySettings />
+              ) : (
                 <div className="rounded-md bg-amber-50 p-4 dark:bg-amber-950/50">
                   <p className="text-sm text-amber-800 dark:text-amber-200">
-                    Security settings configuration will be available in a future update.
+                    Security settings can only be configured by grid administrators.
                   </p>
                 </div>
-              </div>
+              )}
             </TabsContent>
             
             <TabsContent value="advanced" className="space-y-4">

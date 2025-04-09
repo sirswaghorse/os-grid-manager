@@ -281,6 +281,26 @@ export type MarketplaceCategory = typeof marketplaceCategories.$inferSelect;
 export type InsertMarketplaceSetting = z.infer<typeof insertMarketplaceSettingSchema>;
 export type MarketplaceSetting = typeof marketplaceSettings.$inferSelect;
 
+// Security settings schema
+export const securitySettingsSchema = z.object({
+  requireEmailVerification: z.boolean().default(false),
+  minimumPasswordLength: z.number().default(8),
+  passwordRequireSpecialChar: z.boolean().default(true),
+  passwordRequireNumbers: z.boolean().default(true),
+  passwordRequireUppercase: z.boolean().default(true),
+  maxLoginAttempts: z.number().default(5),
+  accountLockoutDuration: z.number().default(30), // minutes
+  sessionTimeout: z.number().default(120), // minutes
+  twoFactorAuthEnabled: z.boolean().default(false),
+  ipAccessRestriction: z.boolean().default(false),
+  allowedIPs: z.array(z.string()).default([]),
+  captchaOnRegistration: z.boolean().default(true),
+  captchaOnLogin: z.boolean().default(false),
+  gridAccessRestriction: z.enum(["open", "invite_only", "closed"]).default("open")
+});
+
+export type SecuritySettings = z.infer<typeof securitySettingsSchema>;
+
 // Version check response type
 export const versionCheckSchema = z.object({
   currentVersion: z.string(),

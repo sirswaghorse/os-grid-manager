@@ -14,7 +14,8 @@ import {
   insertMarketplacePurchaseSchema,
   insertUserInventorySchema,
   insertMarketplaceCategorySchema,
-  insertMarketplaceSettingSchema
+  insertMarketplaceSettingSchema,
+  securitySettingsSchema
 } from "@shared/schema";
 import { ZodError } from "zod";
 import { setupAuth } from "./auth";
@@ -942,6 +943,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Version check API endpoint
+  // Security settings endpoints
+  app.get("/api/security-settings", async (req: Request, res: Response) => {
+    try {
+      // Check if user is authenticated and is an admin
+      if (!req.isAuthenticated() || !(req.user as any).isAdmin) {
+        return res.status(403).json({ message: "Unauthorized: Admin access required" });
+      }
+      
+      const securitySettings = await storage.getSecuritySettings();
+      res.json(securitySettings);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+  
+  app.put("/api/security-settings", async (req: Request, res: Response) => {
+    try {
+      // Check if user is authenticated and is an admin
+      if (!req.isAuthenticated() || !(req.user as any).isAdmin) {
+        return res.status(403).json({ message: "Unauthorized: Admin access required" });
+      }
+      
+      const settings = securitySettingsSchema.partial().parse(req.body);
+      const updatedSettings = await storage.updateSecuritySettings(settings);
+      res.json(updatedSettings);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+
   app.get("/api/version-check", async (req: Request, res: Response) => {
     try {
       // Only allow authenticated admins to check for updates

@@ -13,7 +13,8 @@ import {
   type MarketplacePurchase, type InsertMarketplacePurchase,
   type UserInventory, type InsertUserInventory,
   type MarketplaceCategory, type InsertMarketplaceCategory,
-  type MarketplaceSetting, type InsertMarketplaceSetting
+  type MarketplaceSetting, type InsertMarketplaceSetting,
+  type SecuritySettings
 } from "@shared/schema";
 
 export interface IStorage {
@@ -74,6 +75,10 @@ export interface IStorage {
   updateSplashPage(splashPage: SplashPage): Promise<SplashPage>;
   addSplashPageImage(imageUrl: string): Promise<SplashPage>;
   removeSplashPageImage(imageUrl: string): Promise<SplashPage>;
+  
+  // Security settings operations
+  getSecuritySettings(): Promise<SecuritySettings>;
+  updateSecuritySettings(settings: Partial<SecuritySettings>): Promise<SecuritySettings>;
   
   // Marketplace operations
   // Item operations
@@ -909,6 +914,48 @@ export class MemStorage implements IStorage {
     await this.updateSplashPage(splashPage);
     
     return splashPage;
+  }
+
+  // Security settings operations
+  async getSecuritySettings(): Promise<SecuritySettings> {
+    const setting = await this.getSetting('securitySettings');
+    if (setting) {
+      return JSON.parse(setting.value) as SecuritySettings;
+    }
+    // Return default security settings if none are found
+    const defaultSettings: SecuritySettings = {
+      requireEmailVerification: false,
+      minimumPasswordLength: 8,
+      passwordRequireSpecialChar: true,
+      passwordRequireNumbers: true,
+      passwordRequireUppercase: true,
+      maxLoginAttempts: 5,
+      accountLockoutDuration: 30,
+      sessionTimeout: 120,
+      twoFactorAuthEnabled: false,
+      ipAccessRestriction: false,
+      allowedIPs: [],
+      captchaOnRegistration: true,
+      captchaOnLogin: false,
+      gridAccessRestriction: "open"
+    };
+    
+    // Create the default settings in storage
+    await this.createSetting({
+      key: 'securitySettings',
+      value: JSON.stringify(defaultSettings)
+    });
+    
+    return defaultSettings;
+  }
+
+  async updateSecuritySettings(settings: Partial<SecuritySettings>): Promise<SecuritySettings> {
+    const currentSettings = await this.getSecuritySettings();
+    const updatedSettings = { ...currentSettings, ...settings };
+    
+    await this.updateSetting('securitySettings', JSON.stringify(updatedSettings));
+    
+    return updatedSettings;
   }
 
   // Marketplace Item operations
