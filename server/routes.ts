@@ -1128,7 +1128,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/currency/settings", async (req: Request, res: Response) => {
     try {
       const settings = await storage.getCurrencySettings();
-      res.json(settings);
+      // Make sure we have a valid JSON response
+      if (settings) {
+        res.json(settings);
+      } else {
+        // Return default settings if none are found
+        res.json({
+          id: 1,
+          enabled: false,
+          currencyName: 'Grid Coins',
+          exchangeRate: '250',
+          minPurchase: '5.00',
+          maxPurchase: '100.00',
+          paypalEmail: '',
+          paypalClientId: '',
+          paypalSecret: '',
+          lastUpdated: new Date()
+        });
+      }
     } catch (error) {
       handleError(res, error);
     }
@@ -1156,7 +1173,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const userId = req.user.id;
       const transactions = await storage.getCurrencyTransactionsByUser(userId);
-      res.json(transactions);
+      
+      // Ensure we always return an array, even if empty
+      if (Array.isArray(transactions)) {
+        res.json(transactions);
+      } else {
+        res.json([]);
+      }
     } catch (error) {
       handleError(res, error);
     }
