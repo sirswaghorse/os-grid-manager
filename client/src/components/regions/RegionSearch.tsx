@@ -47,10 +47,10 @@ export default function RegionSearch() {
        (region.description && region.description.toLowerCase().includes(searchTerm.toLowerCase())));
     
     // Filter by region type
-    const matchesType = !regionType || region.regionType === regionType;
+    const matchesType = !regionType || regionType === "all" || region.regionType === regionType;
     
     // Filter by maturity rating
-    const matchesMaturity = !maturity || region.maturity === maturity;
+    const matchesMaturity = !maturity || maturity === "all" || region.maturity === maturity;
     
     return matchesSearch && matchesType && matchesMaturity;
   }).sort((a, b) => {
@@ -127,7 +127,7 @@ export default function RegionSearch() {
                     <SelectValue placeholder="Region Type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Types</SelectItem>
+                    <SelectItem value="all">All Types</SelectItem>
                     <SelectItem value="welcome">Welcome</SelectItem>
                     <SelectItem value="residential">Residential</SelectItem>
                     <SelectItem value="commercial">Commercial</SelectItem>
@@ -142,7 +142,7 @@ export default function RegionSearch() {
                     <SelectValue placeholder="Maturity" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Ratings</SelectItem>
+                    <SelectItem value="all">All Ratings</SelectItem>
                     <SelectItem value="general">General</SelectItem>
                     <SelectItem value="moderate">Moderate</SelectItem>
                     <SelectItem value="adult">Adult</SelectItem>
