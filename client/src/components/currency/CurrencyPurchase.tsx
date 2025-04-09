@@ -95,6 +95,19 @@ export default function CurrencyPurchase() {
   } = useQuery<CurrencySettings>({
     queryKey: ["/api/currency/settings"],
     enabled: true,
+    // Initialize with default settings if response is empty
+    placeholderData: {
+      id: 1,
+      enabled: false,
+      currencyName: 'Grid Coins',
+      exchangeRate: '250',
+      minPurchase: '5.00',
+      maxPurchase: '100.00',
+      paypalEmail: '',
+      paypalClientId: '',
+      paypalSecret: '',
+      lastUpdated: new Date()
+    }
   });
 
   // Get user's transaction history
@@ -105,6 +118,7 @@ export default function CurrencyPurchase() {
   } = useQuery<Transaction[]>({
     queryKey: ["/api/currency/transactions"],
     enabled: true,
+    placeholderData: [],
   });
 
   // Form initialization
