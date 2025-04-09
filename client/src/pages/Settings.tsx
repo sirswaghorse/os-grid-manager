@@ -3,6 +3,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import LoginPageSettings from "@/components/settings/LoginPageSettings";
 import GridSettings from "@/components/settings/GridSettings";
 import SecuritySettings from "@/components/settings/SecuritySettings";
+import AdvancedSettings from "@/components/settings/AdvancedSettings";
 import UpdateChecker from "@/components/settings/UpdateChecker";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -85,12 +86,16 @@ export default function Settings() {
                   Configure advanced options for your grid. These settings are
                   intended for experienced users.
                 </p>
+              </div>
+              {isAdmin ? (
+                <AdvancedSettings />
+              ) : (
                 <div className="rounded-md bg-amber-50 p-4 dark:bg-amber-950/50">
                   <p className="text-sm text-amber-800 dark:text-amber-200">
-                    Advanced configuration options will be available in a future update.
+                    Advanced configuration options can only be accessed by grid administrators.
                   </p>
                 </div>
-              </div>
+              )}
             </TabsContent>
             
             {isAdmin && (

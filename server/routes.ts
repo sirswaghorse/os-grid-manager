@@ -973,6 +973,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Advanced Settings endpoints
+  app.get("/api/advanced-settings", async (req: Request, res: Response) => {
+    try {
+      // Check if user is authenticated and is an admin
+      if (!req.isAuthenticated() || !(req.user as any).isAdmin) {
+        return res.status(403).json({ message: "Unauthorized: Admin access required" });
+      }
+      
+      // For now, return placeholder advanced settings
+      // In a real implementation, these would come from storage
+      const advancedSettings = {
+        databaseSettings: {
+          connectionPoolSize: 25,
+          commandTimeout: 60,
+          enableQueryCaching: true,
+          maintenanceMode: false,
+          backupInterval: 24,
+          logSlowQueries: true,
+          slowQueryThreshold: 500,
+        },
+        loggingSettings: {
+          logLevel: "info",
+          enableConsoleLogging: true,
+          enableFileLogging: true,
+          logRotationSize: 10,
+          keepLogDays: 14,
+          separateLogFiles: true,
+        },
+        performanceSettings: {
+          enablePhysics: true,
+          physicsEngine: "BulletSim",
+          maxAgentCount: 100,
+          maxPrimCount: 45000,
+          minThreads: 2,
+          maxThreads: 8,
+          scriptEngineThreads: 4,
+          useFlexiblePrimLimits: false,
+        },
+        developerSettings: {
+          enableDebugConsole: false,
+          enableStatsApi: false,
+          enableRemoteAdmin: false,
+          remoteAdminPort: 9000,
+          showScriptErrors: false,
+          enableScriptCompilers: true,
+          allowHTTPRequestsFromScripts: false,
+        },
+        backupSettings: {
+          autoBackupEnabled: true,
+          backupFrequency: "daily",
+          backupTime: "02:00",
+          keepBackups: 7,
+          backupLocation: "/var/backups/opensim",
+          includeAssets: true,
+          compressBackups: true,
+        },
+      };
+      
+      res.json(advancedSettings);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+  
+  app.put("/api/advanced-settings", async (req: Request, res: Response) => {
+    try {
+      // Check if user is authenticated and is an admin
+      if (!req.isAuthenticated() || !(req.user as any).isAdmin) {
+        return res.status(403).json({ message: "Unauthorized: Admin access required" });
+      }
+      
+      // For now, just echo back the settings that were sent
+      // In a real implementation, we would validate and save these settings
+      res.json(req.body);
+    } catch (error) {
+      handleError(res, error);
+    }
+  });
+
   app.get("/api/version-check", async (req: Request, res: Response) => {
     try {
       // Only allow authenticated admins to check for updates
