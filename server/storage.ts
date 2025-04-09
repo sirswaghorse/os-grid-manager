@@ -175,6 +175,9 @@ export class MemStorage implements IStorage {
     this.userInventory = new Map();
     this.marketplaceCategories = new Map();
     this.marketplaceSettings = new Map();
+    // Initialize currency
+    this.currencyTransactions = new Map();
+    this._currencySettings = this.getDefaultCurrencySettings();
     
     this.userCurrentId = 1;
     this.gridCurrentId = 1;
@@ -188,6 +191,8 @@ export class MemStorage implements IStorage {
     this.marketplacePurchaseCurrentId = 1;
     this.userInventoryCurrentId = 1;
     this.marketplaceCategoryCurrentId = 1;
+    // Initialize currency IDs
+    this.currencyTransactionCurrentId = 1;
     
     // Default login customization
     const loginCustomization = {
@@ -1256,61 +1261,96 @@ export class MemStorage implements IStorage {
     return this.marketplaceSettings.delete(key);
   }
 
-  private currencySettings: CurrencySetting = {
-    id: 1,
-    enabled: false,
-    currencyName: 'Grid Coins',
-    exchangeRate: '250',
-    minPurchase: '5.00',
-    maxPurchase: '100.00',
-    paypalEmail: '',
-    paypalClientId: '',
-    paypalSecret: '',
-    lastUpdated: new Date()
-  };
+  private _currencySettings: CurrencySetting;
+  private currencyTransactions: Map<number, CurrencyTransaction>;
+  private currencyTransactionCurrentId: number;
 
-  private currencyTransactions: Map<number, CurrencyTransaction> = new Map();
-  private currencyTransactionCurrentId: number = 1;
+  // Get default currency settings
+  private getDefaultCurrencySettings(): CurrencySetting {
+    return {
+      id: 1,
+      enabled: false,
+      currencyName: 'Grid Coins',
+      exchangeRate: '250',
+      minPurchase: '5.00',
+      maxPurchase: '100.00',
+      paypalEmail: '',
+      paypalClientId: '',
+      paypalSecret: '',
+      lastUpdated: new Date()
+    };
+  }
+
+  // Initialize currency settings in constructor
+  private initCurrencySettings() {
+    if (!this._currencySettings) {
+      this._currencySettings = this.getDefaultCurrencySettings();
+    }
+    
+    if (!this.currencyTransactions) {
+      this.currencyTransactions = new Map<number, CurrencyTransaction>();
+    }
+    
+    if (!this.currencyTransactionCurrentId) {
+      this.currencyTransactionCurrentId = 1;
+    }
+  }
 
   async getCurrencySettings(): Promise<CurrencySetting> {
-    return this.currencySettings;
+    this.initCurrencySettings();
+    return this._currencySettings;
   }
 
   async updateCurrencySettings(settings: Partial<CurrencySetting>): Promise<CurrencySetting> {
-    this.currencySettings = {
-      ...this.currencySettings,
+    this.initCurrencySettings();
+    
+    this._currencySettings = {
+      ...this._currencySettings,
       ...settings,
       lastUpdated: new Date()
     };
-    return this.currencySettings;
+    
+    return this._currencySettings;
   }
 
   async getCurrencyTransaction(id: number): Promise<CurrencyTransaction | undefined> {
+    this.initCurrencySettings();
     return this.currencyTransactions.get(id);
   }
 
   async getCurrencyTransactionsByUser(userId: number): Promise<CurrencyTransaction[]> {
+    this.initCurrencySettings();
+    
+    if (this.currencyTransactions.size === 0) {
+      return [];
+    }
+    
     return Array.from(this.currencyTransactions.values())
       .filter(transaction => transaction.userId === userId);
   }
 
   async createCurrencyTransaction(transaction: InsertCurrencyTransaction): Promise<CurrencyTransaction> {
+    this.initCurrencySettings();
+    
     const newTransaction: CurrencyTransaction = {
       id: this.currencyTransactionCurrentId++,
       userId: transaction.userId,
       amount: transaction.amount,
       usdAmount: transaction.usdAmount,
-      status: transaction.status,
+      status: transaction.status || 'pending',
       paymentProcessor: transaction.paymentProcessor || 'paypal',
       paymentId: transaction.paymentId || null,
       createdAt: new Date(),
       completedAt: null
     };
+    
     this.currencyTransactions.set(newTransaction.id, newTransaction);
     return newTransaction;
   }
 
   async updateCurrencyTransaction(id: number, transaction: Partial<CurrencyTransaction>): Promise<CurrencyTransaction | undefined> {
+    this.initCurrencySettings();
+    
     const currentTransaction = this.currencyTransactions.get(id);
     
     if (!currentTransaction) {
