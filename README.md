@@ -115,7 +115,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Support
 
-For support or questions, please open an issue on this repository.
+No Support at this time.
+
+F̶o̶r̶ s̶u̶p̶p̶o̶r̶t̶ o̶r̶ q̶u̶e̶s̶t̶i̶o̶n̶s̶, p̶l̶e̶a̶s̶e̶ o̶p̶e̶n̶ a̶n̶ i̶s̶s̶u̶e̶ o̶n̶ t̶h̶i̶s̶ r̶e̶p̶o̶s̶i̶t̶o̶r̶y̶.
 
 ---
 
